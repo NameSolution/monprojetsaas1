@@ -1,6 +1,6 @@
-import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
+const express = require('express');
+const path = require('path');
+const { fileURLToPath } = require('url');
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -8,7 +8,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Servir le frontend
 app.use(express.static(path.join(__dirname, '..', 'dist')));
 // Express 5 requires a valid path pattern. Use a wildcard route.
-app.get('/:path(*)', (req, res) => {
+// Serve the React app for any unmatched route
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
 });
 

@@ -23,7 +23,7 @@ router.post('/register', async (req, res) => {
 
     // Create user
     const result = await db.query(
-      'INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING id, email, name',
+      'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name',
       [email, hashedPassword, name]
     );
 
@@ -57,8 +57,13 @@ router.post('/login', async (req, res) => {
 
     const user = result.rows[0];
 
+    // Ensure password hash exists before comparing
+    if (!user || !user.password_hash) {
+      return res.status(401).json({ error: 'Utilisateur ou mot de passe incorrect' });
+    }
+
     // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
