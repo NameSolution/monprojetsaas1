@@ -21,7 +21,7 @@ const LoginPage = () => {
     const handleLogin = async (e) => {
       e.preventDefault();
       try {
-        const { success, user } = await login(formData.email, formData.password);
+        const { success, user, error } = await login(formData.email, formData.password);
         if (success && user) {
           if (user.role === 'superadmin') {
             navigate('/superadmin');
@@ -34,10 +34,12 @@ const LoginPage = () => {
             toast({variant: "destructive", title: "Accès non configuré (Simulé)", description: "Votre rôle ou hôtel n'est pas correctement configuré."});
             navigate('/login');
           }
+        } else if (!success) {
+          toast({ variant: "destructive", title: "Erreur de connexion", description: error || "Identifiants invalides" });
         }
       } catch (error) {
-      // Error toast is handled by the login function in authContext
-    }
+        toast({ variant: "destructive", title: "Erreur", description: error.message });
+      }
   };
   
   const handlePasswordResetRequest = async () => {
