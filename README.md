@@ -210,7 +210,7 @@ chmod +x setup.sh && ./setup.sh
 npm install
 node server/seed.cjs
 npm run build
-node index.cjs
+npm start
 ```
 
 ## 📋 Comptes de test
@@ -226,4 +226,4 @@ node index.cjs
 ```
 
 ## 🌐 Déploiement
-Le projet est configuré pour un déploiement sur Replit avec auto-scaling. Vous pouvez aussi l'héberger sur tout autre service compatible Node.js (Docker, VPS, etc.). Une fois le backend développé et PostgreSQL configuré, exécutez `npm run build` puis `node index.cjs` pour démarrer l'application en production.
+Le projet est configuré pour un déploiement sur Replit avec auto-scaling. Vous pouvez aussi l'héberger sur tout autre service compatible Node.js (Docker, VPS, etc.). Une fois le backend développé et PostgreSQL configuré, exécutez `npm run build` puis `npm start` pour démarrer l'application en production.
