@@ -81,10 +81,10 @@ async function createTables() {
     `);
 
     console.log('✅ Tables créées (ou mises à jour) avec succès');
-  } catch (err) {
-    console.error('❌ Erreur lors de la création des tables :', err);
-    process.exit(1);
-  }
+      VALUES
+        ('Basic', 29.99, '{"conversations": 1000, "languages": 5}'::jsonb),
+        ('Pro', 79.99, '{"conversations": 5000, "languages": 15}'::jsonb),
+        ('Enterprise', 199.99, '{"conversations": -1, "languages": -1}'::jsonb)
 }
 
 async function seedDatabase() {
