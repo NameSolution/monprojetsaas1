@@ -18,26 +18,24 @@ const LoginPage = () => {
   const { login, loading, resetPassword } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const user = await login(formData.email, formData.password);
-      if (user) {
-        if (user.role === 'superadmin') {
-          navigate('/superadmin');
-        } else if (['admin', 'manager'].includes(user.role) && user.hotel_id) {
-          navigate('/client');
-        } else if (['admin', 'manager'].includes(user.role) && !user.hotel_id) {
-           toast({variant: "destructive", title: "Configuration Requise (Simulée)", description: "Votre compte administrateur n'est lié à aucun hôtel. Contactez le Superadmin."});
-           // logout(); // No need to logout, login failed or user is not fully configured
-           navigate('/login');
-        } else {
-            toast({variant: "destructive", title: "Accès non configuré (Simulé)", description: "Votre rôle ou hôtel n'est pas correctement configuré."});
-            // logout();
+    const handleLogin = async (e) => {
+      e.preventDefault();
+      try {
+        const { success, user } = await login(formData.email, formData.password);
+        if (success && user) {
+          if (user.role === 'superadmin') {
+            navigate('/superadmin');
+          } else if (['admin', 'manager'].includes(user.role) && user.hotel_id) {
+            navigate('/client');
+          } else if (['admin', 'manager'].includes(user.role) && !user.hotel_id) {
+            toast({variant: "destructive", title: "Configuration Requise (Simulée)", description: "Votre compte administrateur n'est lié à aucun hôtel. Contactez le Superadmin."});
             navigate('/login');
+          } else {
+            toast({variant: "destructive", title: "Accès non configuré (Simulé)", description: "Votre rôle ou hôtel n'est pas correctement configuré."});
+            navigate('/login');
+          }
         }
-      }
-    } catch (error) {
+      } catch (error) {
       // Error toast is handled by the login function in authContext
     }
   };
