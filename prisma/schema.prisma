@@ -1,30 +1,77 @@
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["public", "auth"]
+}
+
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  profile   Profile?
-
-  @@map("users")
-  @@schema("auth")
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  profile      Profile?
+  supportTickets SupportTicket[]
 }
 
 model Profile {
-  id     Int   @id @default(autoincrement())
-  userId Int   @unique
-  user   User  @relation(fields: [userId], references: [id])
+  id        String   @id
+  name      String
+  role      String   @default("client")
+  hotel     Hotel?   @relation(fields: [hotelId], references: [id])
+  hotelId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [id], references: [id])
+}
 
-  @@map("profiles")
-  @@schema("public")
+model Hotel {
+  id              String          @id @default(uuid())
+  name            String
+  description     String?
+  logoUrl         String?
+  defaultLangCode String          @default("en")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  profiles        Profile[]
+  hotelLanguages  HotelLanguage[]
+}
+
+model HotelLanguage {
+  id        String  @id @default(uuid())
+  hotel     Hotel   @relation(fields: [hotelId], references: [id])
+  hotelId   String
+  langCode  String
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+  @@unique([hotelId, langCode])
+}
+
+model SupportTicket {
+  id        String   @id @default(uuid())
+  title     String
+  description String?
+  status    String   @default("open")
+  priority  String   @default("medium")
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SubscriptionPlan {
+  id        String   @id @default(uuid())
+  name      String
+  price     Decimal
+  features  Json?
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Language {
+  code String @id
+  name String
 }
