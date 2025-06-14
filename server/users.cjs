@@ -1,6 +1,7 @@
 
 const express = require('express');
-const bcrypt = require('bcrypt');
+// Use bcryptjs consistently across the project
+const bcrypt = require('bcryptjs');
 const db = require('./db.cjs');
 
 const router = express.Router();
