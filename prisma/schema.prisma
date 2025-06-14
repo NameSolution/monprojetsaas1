@@ -15,7 +15,8 @@ model User {
   password  String
   createdAt DateTime @default(now())
 
-  @@schema(name: "public")
+  @@map("User")
+  @@schema("public")
 }
 
 model Profile {
@@ -23,5 +24,6 @@ model Profile {
   userId Int  @unique
   user   User @relation(fields: [userId], references: [id])
 
-  @@schema(name: "auth")
+  @@map("Profile")
+  @@schema("auth")
 }
