@@ -1,15 +1,10 @@
-// server/seed.cjs
+// server/seed.mjs
 import db from './db.cjs';
 import bcrypt from 'bcryptjs';
 
 async function createTables() {
   try {
-    // pgcrypto pour gen_random_uuid()
-    await db.query(`
-      CREATE EXTENSION IF NOT EXISTS pgcrypto;
-    `);
-
-    // Tables dans public
+    await db.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
     await db.query(`
       CREATE TABLE IF NOT EXISTS public.users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -94,21 +89,19 @@ async function seedDatabase() {
     await createTables();
     console.log('🚀 Début du seed de la base…');
 
-    // Seed subscription_plans avec JSONB cast
     await db.query(`
       INSERT INTO public.subscription_plans (tenant_id, name, price, features)
       SELECT v.tenant_id, v.name, v.price, v.features::jsonb
       FROM (VALUES
-        (1, 'Basic',      29.99, '{"conversations":1000,"languages":5}'),
-        (1, 'Pro',        79.99, '{"conversations":5000,"languages":15}'),
-        (1, 'Enterprise',199.99, '{"conversations":-1,"languages":-1}')
+        (1, 'Basic', 29.99, '{"conversations":1000,"languages":5}'),
+        (1, 'Pro', 79.99, '{"conversations":5000,"languages":15}'),
+        (1, 'Enterprise', 199.99, '{"conversations":-1,"languages":-1}')
       ) AS v(tenant_id,name,price,features)
       WHERE NOT EXISTS (
         SELECT 1 FROM public.subscription_plans p WHERE p.name = v.name
       );
     `);
 
-    // Seed languages
     await db.query(`
       INSERT INTO public.languages (code, tenant_id, name)
       SELECT v.code, v.tenant_id, v.name
@@ -123,14 +116,12 @@ async function seedDatabase() {
       );
     `);
 
-    // Seed Demo Hotel
     await db.query(`
       INSERT INTO public.hotels (id, tenant_id, name, description)
       VALUES ('550e8400-e29b-41d4-a716-446655440000', 1, 'Demo Hotel', 'A demonstration hotel for testing')
       ON CONFLICT (id) DO NOTHING;
     `);
 
-    // Seed Super Admin
     const { rows: sa } = await db.query(
       `SELECT id FROM public.users WHERE email = 'pass@passhoteltest.com'`
     );
@@ -149,7 +140,6 @@ async function seedDatabase() {
       );
     }
 
-    // Seed Hotel Admin
     const { rows: ha } = await db.query(
       `SELECT id FROM public.users WHERE email = 'admin@example.com'`
     );
@@ -193,13 +183,8 @@ async function seedDatabase() {
   }
 }
 
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
-const currentModule = import.meta.url;
-const currentFile = fileURLToPath(currentModule);
-
-if (process.argv[1] === currentFile) {
+// Exécution directe du script (pas de require en ES module)
+if (process.argv[1] === (new URL(import.meta.url)).pathname) {
   seedDatabase();
 }
 
