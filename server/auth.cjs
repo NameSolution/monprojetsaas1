@@ -50,8 +50,14 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     console.log('Login attempt for', email);
 
-    // Check if user exists
-    const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+    // Check if user exists and load profile data
+    const result = await db.query(
+      `SELECT u.*, p.role, p.hotel_id, p.name
+       FROM users u
+       LEFT JOIN profiles p ON u.id = p.id
+       WHERE u.email = $1`,
+      [email]
+    );
     console.log('User query result', result.rows);
     if (result.rows.length === 0) {
       return res.status(400).json({ error: 'Invalid credentials' });
@@ -85,7 +91,8 @@ router.post('/login', async (req, res) => {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role
+        role: user.role,
+        hotel_id: user.hotel_id
       }
     });
   } catch (err) {
