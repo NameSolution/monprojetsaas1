@@ -1,45 +1,30 @@
-    // ensure pgcrypto extension and add tenant_id columns if missing
-      ALTER TABLE IF EXISTS public.users ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
-      ALTER TABLE IF EXISTS public.hotels ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
-      ALTER TABLE IF EXISTS public.profiles ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
-      ALTER TABLE IF EXISTS public.hotel_languages ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
-      ALTER TABLE IF EXISTS public.support_tickets ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
-      ALTER TABLE IF EXISTS public.subscription_plans ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
-      ALTER TABLE IF EXISTS public.languages ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
+// server/seed.cjs
+const db = require('./db.cjs');
+const bcrypt = require('bcryptjs');
+
+async function createTables() {
+  try {
+    // 1) Extension pour UUID
+    await db.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
+
+    // 2) Ajout du champ tenant_id si manquant
+    const alterQueries = [
+      `ALTER TABLE IF EXISTS public.users            ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;`,
+      `ALTER TABLE IF EXISTS public.hotels           ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;`,
+      `ALTER TABLE IF EXISTS public.profiles         ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;`,
+      `ALTER TABLE IF EXISTS public.hotel_languages  ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;`,
+      `ALTER TABLE IF EXISTS public.support_tickets  ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;`,
+      `ALTER TABLE IF EXISTS public.subscription_plans ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;`,
+      `ALTER TABLE IF EXISTS public.languages        ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;`,
+    ];
+    for (const q of alterQueries) {
+      await db.query(q);
+    }
+
+    // 3) Création des tables si elles n'existent pas
+    await db.query(`
       CREATE TABLE IF NOT EXISTS public.users (
-        tenant_id INT NOT NULL DEFAULT 1,
-      CREATE TABLE IF NOT EXISTS public.hotels (
-        tenant_id INT NOT NULL DEFAULT 1,
-
-      CREATE TABLE IF NOT EXISTS public.profiles (
-        id UUID PRIMARY KEY REFERENCES public.users(id),
-        tenant_id INT NOT NULL DEFAULT 1,
-        hotel_id UUID REFERENCES public.hotels(id),
-      CREATE TABLE IF NOT EXISTS public.hotel_languages (
-        tenant_id INT NOT NULL DEFAULT 1,
-        hotel_id UUID REFERENCES public.hotels(id),
-      CREATE TABLE IF NOT EXISTS public.support_tickets (
-        tenant_id INT NOT NULL DEFAULT 1,
-        user_id UUID REFERENCES public.users(id),
-      CREATE TABLE IF NOT EXISTS public.subscription_plans (
-        tenant_id INT NOT NULL DEFAULT 1,
-        created_at TIMESTAMPTZ DEFAULT NOW(),
-        UNIQUE(name)
-      CREATE TABLE IF NOT EXISTS public.languages (
-        tenant_id INT NOT NULL DEFAULT 1,
-      INSERT INTO public.subscription_plans (name, price, features)
-      INSERT INTO public.hotels (id, name, description)
-      INSERT INTO public.languages (code, name) VALUES
-      SELECT id FROM public.users WHERE email = 'pass@passhoteltest.com'
-        INSERT INTO public.users (id, email, password_hash)
-        INSERT INTO public.profiles (id, name, role)
-      SELECT id FROM public.users WHERE email = 'admin@example.com'
-
-        INSERT INTO public.users (id, email, password_hash)
-        INSERT INTO public.profiles (id, name, role, hotel_id)
-        INSERT INTO public.hotel_languages (hotel_id, lang_code) VALUES
-        id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id      INT         NOT NULL DEFAULT 1,
+        id             UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
         email          VARCHAR(255) UNIQUE NOT NULL,
         password_hash  VARCHAR(255) NOT NULL,
         created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -47,8 +32,7 @@
       );
 
       CREATE TABLE IF NOT EXISTS public.hotels (
-        id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id        INT         NOT NULL DEFAULT 1,
+        id               UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
         name             VARCHAR(255) NOT NULL,
         description      TEXT,
         logo_url         VARCHAR(255),
@@ -58,51 +42,47 @@
       );
 
       CREATE TABLE IF NOT EXISTS public.profiles (
-        id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id  INT         NOT NULL DEFAULT 1,
+        id         UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
         name       VARCHAR(255) NOT NULL,
-        role       VARCHAR(50)  NOT NULL DEFAULT 'client',
-        hotel_id   UUID        REFERENCES public.hotels(id),
-        user_id    UUID        UNIQUE REFERENCES public.users(id),
+        role       VARCHAR(50) NOT NULL DEFAULT 'client',
+        hotel_id   UUID      REFERENCES public.hotels(id),
+        user_id    UUID      UNIQUE REFERENCES public.users(id),
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
       CREATE TABLE IF NOT EXISTS public.hotel_languages (
-        id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id  INT         NOT NULL DEFAULT 1,
-        hotel_id   UUID        NOT NULL REFERENCES public.hotels(id),
-        lang_code  VARCHAR(10)  NOT NULL,
-        is_active  BOOLEAN     NOT NULL DEFAULT true,
+        id         UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
+        hotel_id   UUID      NOT NULL REFERENCES public.hotels(id),
+        lang_code  VARCHAR(10) NOT NULL,
+        is_active  BOOLEAN   NOT NULL DEFAULT true,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         UNIQUE (hotel_id, lang_code)
       );
 
       CREATE TABLE IF NOT EXISTS public.support_tickets (
-        id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id   INT         NOT NULL DEFAULT 1,
+        id          UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
         title       VARCHAR(255) NOT NULL,
         description TEXT,
-        status      VARCHAR(50)  NOT NULL DEFAULT 'open',
-        priority    VARCHAR(50)  NOT NULL DEFAULT 'medium',
-        user_id     UUID        REFERENCES public.users(id),
+        status      VARCHAR(50) NOT NULL DEFAULT 'open',
+        priority    VARCHAR(50) NOT NULL DEFAULT 'medium',
+        user_id     UUID      REFERENCES public.users(id),
         created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
       CREATE TABLE IF NOT EXISTS public.subscription_plans (
-        id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id   INT         NOT NULL DEFAULT 1,
+        id          UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
         name        VARCHAR(255) NOT NULL,
         price       DECIMAL(10,2) NOT NULL,
         features    JSONB,
-        is_active   BOOLEAN     NOT NULL DEFAULT true,
-        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        is_active   BOOLEAN   NOT NULL DEFAULT true,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(name)
       );
 
       CREATE TABLE IF NOT EXISTS public.languages (
-        code       VARCHAR(10)  PRIMARY KEY,
-        tenant_id  INT         NOT NULL DEFAULT 1,
+        code       VARCHAR(10) PRIMARY KEY,
         name       VARCHAR(255) NOT NULL
       );
     `);
@@ -119,68 +99,65 @@ async function seedDatabase() {
     await createTables();
     console.log('🚀 Début du seed de la base…');
 
-    // Plans d'abonnement
+    // Subscription plans
     await db.query(`
-      INSERT INTO public.subscription_plans (tenant_id, name, price, features) 
-      VALUES 
-        (1, 'Basic', 29.99, '{"conversations":1000,"languages":5}'),
-        (1, 'Pro', 79.99, '{"conversations":5000,"languages":15}'),
-        (1, 'Enterprise', 199.99, '{"conversations":-1,"languages":-1}')
+      INSERT INTO public.subscription_plans (name, price, features)
+      VALUES
+        ('Basic', 29.99, '{"conversations":1000,"languages":5}'),
+        ('Pro', 79.99, '{"conversations":5000,"languages":15}'),
+        ('Enterprise', 199.99, '{"conversations":-1,"languages":-1}')
       ON CONFLICT (name) DO NOTHING;
     `);
 
-    // Démo hôtel
+    // Demo hotel
     await db.query(`
-      INSERT INTO public.hotels (id, tenant_id, name, description)
-      VALUES ('550e8400-e29b-41d4-a716-446655440000', 1, 'Demo Hotel', 'A demonstration hotel for testing')
+      INSERT INTO public.hotels (id, name, description)
+      VALUES ('550e8400-e29b-41d4-a716-446655440000','Demo Hotel','A demonstration hotel for testing')
       ON CONFLICT (id) DO NOTHING;
     `);
 
-    // Langues
+    // Languages
     await db.query(`
-      INSERT INTO public.languages (code, tenant_id, name) VALUES
-        ('fr', 1, 'Français'),
-        ('en', 1, 'English'),
-        ('es', 1, 'Español'),
-        ('de', 1, 'Deutsch')
+      INSERT INTO public.languages (code, name) VALUES
+        ('fr','Français'),
+        ('en','English'),
+        ('es','Español'),
+        ('de','Deutsch')
       ON CONFLICT (code) DO NOTHING;
     `);
 
-    // Superadmin
-    const { rows: sa } = await db.query(
-      `SELECT id FROM public.users WHERE email = 'pass@passhoteltest.com'`
-    );
+    // Super Admin
+    const { rows: sa } = await db.query(`SELECT id FROM public.users WHERE email='pass@passhoteltest.com'`);
     if (!sa.length) {
       const hash = await bcrypt.hash('pass', 10);
       const res = await db.query(
-        `INSERT INTO public.users (tenant_id, email, password_hash) VALUES (1, 'pass@passhoteltest.com', $1) RETURNING id`,
+        `INSERT INTO public.users (email, password_hash) VALUES ('pass@passhoteltest.com',$1) RETURNING id`,
         [hash]
       );
       await db.query(
-        `INSERT INTO public.profiles (tenant_id, name, role, user_id) VALUES (1, 'Super Admin', 'superadmin', $1)`,
+        `INSERT INTO public.profiles (name, role, user_id) VALUES ('Super Admin','superadmin',$1)`,
         [res.rows[0].id]
       );
     }
 
-    // Admin démo hôtel
-    const { rows: ha } = await db.query(
-      `SELECT id FROM public.users WHERE email = 'admin@example.com'`
-    );
+    // Demo Hotel Admin
+    const { rows: ha } = await db.query(`SELECT id FROM public.users WHERE email='admin@example.com'`);
     if (!ha.length) {
       const hash = await bcrypt.hash('password', 10);
       const res = await db.query(
-        `INSERT INTO public.users (tenant_id, email, password_hash) VALUES (1, 'admin@example.com', $1) RETURNING id`,
+        `INSERT INTO public.users (email,password_hash) VALUES ('admin@example.com',$1) RETURNING id`,
         [hash]
       );
       await db.query(
-        `INSERT INTO public.profiles (tenant_id, name, role, hotel_id, user_id)
-         VALUES (1, 'Admin Demo', 'admin', '550e8400-e29b-41d4-a716-446655440000', $1)`,
+        `INSERT INTO public.profiles (name, role, hotel_id, user_id)
+         VALUES ('Admin Demo','admin','550e8400-e29b-41d4-a716-446655440000',$1)`,
         [res.rows[0].id]
       );
       await db.query(`
-        INSERT INTO public.hotel_languages (tenant_id, hotel_id, lang_code) VALUES
-          (1, '550e8400-e29b-41d4-a716-446655440000', 'fr'),
-          (1, '550e8400-e29b-41d4-a716-446655440000', 'en')
+        INSERT INTO public.hotel_languages (hotel_id,lang_code)
+        VALUES
+          ('550e8400-e29b-41d4-a716-446655440000','fr'),
+          ('550e8400-e29b-41d4-a716-446655440000','en')
         ON CONFLICT (hotel_id, lang_code) DO NOTHING;
       `);
     }
