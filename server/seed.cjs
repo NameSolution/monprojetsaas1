@@ -1,5 +1,4 @@
-// server/seed.cjs
-const db = require('./db.cjs');
+    // ensure pgcrypto extension for UUID generation
 const bcrypt = require('bcryptjs');
 
 async function createTables() {
