@@ -193,7 +193,13 @@ async function seedDatabase() {
   }
 }
 
-if (require.main === module) {
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const currentModule = import.meta.url;
+const currentFile = fileURLToPath(currentModule);
+
+if (process.argv[1] === currentFile) {
   seedDatabase();
 }
 
