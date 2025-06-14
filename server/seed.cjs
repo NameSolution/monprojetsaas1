@@ -81,7 +81,7 @@ async function createTables() {
       );
     `);
 
-    // 3) Ajouter la contrainte UNIQUE sur subscription_plans.name si absente
+    // 3) S’assurer de l’unicité du nom de plan
     await db.query(`
       DO $$
       BEGIN
@@ -121,9 +121,9 @@ async function seedDatabase() {
       INSERT INTO public.subscription_plans (tenant_id, name, price, features, is_active)
       SELECT v.tenant_id, v.name, v.price, v.features, TRUE
       FROM (VALUES
-        (1, 'Basic',      29.99, '{"conversations":1000,"languages":5}'),
-        (1, 'Pro',        79.99, '{"conversations":5000,"languages":15}'),
-        (1, 'Enterprise',199.99, '{"conversations":-1,"languages":-1}')
+        (1, 'Basic',       29.99, '{"conversations":1000,"languages":5}'),
+        (1, 'Pro',         79.99, '{"conversations":5000,"languages":15}'),
+        (1, 'Enterprise',  199.99, '{"conversations":-1,"languages":-1}')
       ) AS v(tenant_id,name,price,features)
       WHERE NOT EXISTS (
         SELECT 1 FROM public.subscription_plans p WHERE p.name = v.name
@@ -145,7 +145,7 @@ async function seedDatabase() {
       );
     `);
 
-    // 4c) Seed Demo Hotel
+    // 4c) Seed demo hotel
     await db.query(`
       INSERT INTO public.hotels (id, tenant_id, name, description)
       VALUES ('550e8400-e29b-41d4-a716-446655440000', 1, 'Demo Hotel', 'A demonstration hotel for testing')
