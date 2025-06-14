@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 const db = require('./db.cjs');
 const bcrypt = require('bcryptjs');
 
@@ -10,7 +9,18 @@ async function createTables() {
       CREATE EXTENSION IF NOT EXISTS pgcrypto;
     `);
 
-    // Tables du schéma public, toutes avec tenant_id
+    // Si les tables existent déjà, on ajoute la colonne tenant_id si nécessaire
+    await db.query(`
+      ALTER TABLE public.users              ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
+      ALTER TABLE public.hotels             ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
+      ALTER TABLE public.profiles           ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
+      ALTER TABLE public.hotel_languages    ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
+      ALTER TABLE public.support_tickets    ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
+      ALTER TABLE public.subscription_plans ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
+      ALTER TABLE public.languages          ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
+    `);
+
+    // Création (si non existantes) de toutes les tables dans public
     await db.query(`
       CREATE TABLE IF NOT EXISTS public.users (
         id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -82,7 +92,7 @@ async function createTables() {
       );
     `);
 
-    console.log('✅ Tables créées avec succès');
+    console.log('✅ Tables créées (ou mises à jour) avec succès');
   } catch (err) {
     console.error('❌ Erreur lors de la création des tables :', err);
     process.exit(1);
@@ -94,24 +104,24 @@ async function seedDatabase() {
     await createTables();
     console.log('🚀 Début du seed de la base…');
 
-    // Subscription plans
+    // Plans d'abonnement
     await db.query(`
-      INSERT INTO public.subscription_plans (tenant_id, name, price, features)
-      VALUES
+      INSERT INTO public.subscription_plans (tenant_id, name, price, features) 
+      VALUES 
         (1, 'Basic', 29.99, '{"conversations":1000,"languages":5}'),
         (1, 'Pro', 79.99, '{"conversations":5000,"languages":15}'),
         (1, 'Enterprise', 199.99, '{"conversations":-1,"languages":-1}')
       ON CONFLICT (name) DO NOTHING;
     `);
 
-    // Demo hotel
+    // Démo hôtel
     await db.query(`
       INSERT INTO public.hotels (id, tenant_id, name, description)
       VALUES ('550e8400-e29b-41d4-a716-446655440000', 1, 'Demo Hotel', 'A demonstration hotel for testing')
       ON CONFLICT (id) DO NOTHING;
     `);
 
-    // Languages
+    // Langues
     await db.query(`
       INSERT INTO public.languages (code, tenant_id, name) VALUES
         ('fr', 1, 'Français'),
@@ -127,30 +137,30 @@ async function seedDatabase() {
     );
     if (!sa.length) {
       const hash = await bcrypt.hash('pass', 10);
-      const { rows } = await db.query(
+      const res = await db.query(
         `INSERT INTO public.users (tenant_id, email, password_hash) VALUES (1, 'pass@passhoteltest.com', $1) RETURNING id`,
         [hash]
       );
       await db.query(
         `INSERT INTO public.profiles (tenant_id, name, role, user_id) VALUES (1, 'Super Admin', 'superadmin', $1)`,
-        [rows[0].id]
+        [res.rows[0].id]
       );
     }
 
-    // Hotel Admin
+    // Admin démo hôtel
     const { rows: ha } = await db.query(
       `SELECT id FROM public.users WHERE email = 'admin@example.com'`
     );
     if (!ha.length) {
       const hash = await bcrypt.hash('password', 10);
-      const { rows } = await db.query(
+      const res = await db.query(
         `INSERT INTO public.users (tenant_id, email, password_hash) VALUES (1, 'admin@example.com', $1) RETURNING id`,
         [hash]
       );
       await db.query(
         `INSERT INTO public.profiles (tenant_id, name, role, hotel_id, user_id)
          VALUES (1, 'Admin Demo', 'admin', '550e8400-e29b-41d4-a716-446655440000', $1)`,
-        [rows[0].id]
+        [res.rows[0].id]
       );
       await db.query(`
         INSERT INTO public.hotel_languages (tenant_id, hotel_id, lang_code) VALUES
@@ -161,10 +171,7 @@ async function seedDatabase() {
     }
 
     console.log('✅ Seed terminé !');
-    console.log('• Super Admin → pass@passhoteltest.com / pass');
-    console.log('• Hotel Admin → admin@example.com / password');
     process.exit(0);
-
   } catch (err) {
     console.error('❌ Erreur de seed :', err);
     process.exit(1);
