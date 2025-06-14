@@ -8,13 +8,13 @@ generator client {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  tenantId     Int
-  email        String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  profile      Profile?
+  id             String           @id @default(uuid())
+  tenantId       Int
+  email          String           @unique
+  passwordHash   String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  profile        Profile?         @relation(fields: [id], references: [userId])
   supportTickets SupportTicket[]
 
   @@map("users")
@@ -46,44 +46,54 @@ model Hotel {
   updatedAt       DateTime        @updatedAt
   profiles        Profile[]
   hotelLanguages  HotelLanguage[]
+
+  @@map("hotels")
 }
 
 model HotelLanguage {
-  id        String  @id @default(uuid())
-  tenantId  Int
-  hotel     Hotel   @relation(fields: [hotelId], references: [id])
-  hotelId   String
-  langCode  String
-  isActive  Boolean @default(true)
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  tenantId   Int
+  hotel      Hotel    @relation(fields: [hotelId], references: [id])
+  hotelId    String
+  langCode   String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
   @@unique([hotelId, langCode])
+  @@map("hotel_languages")
 }
 
 model SupportTicket {
-  id        String   @id @default(uuid())
-  tenantId  Int
-  title     String
+  id          String   @id @default(uuid())
+  tenantId    Int
+  title       String
   description String?
-  status    String   @default("open")
-  priority  String   @default("medium")
-  user      User?    @relation(fields: [userId], references: [id])
-  userId    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status      String   @default("open")
+  priority    String   @default("medium")
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("support_tickets")
 }
 
 model SubscriptionPlan {
-  id        String   @id @default(uuid())
-  tenantId  Int
-  name      String
-  price     Decimal
-  features  Json?
-  isActive  Boolean @default(true)
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  tenantId   Int
+  name       String
+  price      Decimal
+  features   Json?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@map("subscription_plans")
 }
 
 model Language {
-  code String @id
-  tenantId Int
-  name String
+  code      String   @id
+  tenantId  Int
+  name      String
+
+  @@map("languages")
 }
