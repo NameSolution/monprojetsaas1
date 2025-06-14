@@ -14,4 +14,14 @@ model User {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+
+  @@schema(name: "public")
+}
+
+model Profile {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+
+  @@schema(name: "auth")
 }
