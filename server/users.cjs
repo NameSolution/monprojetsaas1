@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
     const result = await db.query(`
       SELECT p.*, u.email, h.name as hotel_name
       FROM profiles p
-      JOIN auth.users u ON p.id = u.id
+      JOIN users u ON p.id = u.id
       LEFT JOIN hotels h ON p.hotel_id = h.id
       ORDER BY p.created_at DESC
     `);
@@ -40,7 +40,7 @@ router.post('/', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
 
     const userRes = await db.query(
-      "INSERT INTO auth.users (id, email, password) VALUES (gen_random_uuid(), $1, $2) RETURNING id",
+      "INSERT INTO users (id, email, password) VALUES (gen_random_uuid(), $1, $2) RETURNING id",
       [email, hashed]
     );
 
@@ -96,7 +96,7 @@ router.delete('/:id', async (req, res) => {
     }
 
     await db.query('DELETE FROM profiles WHERE id = $1', [id]);
-    await db.query('DELETE FROM auth.users WHERE id = $1', [id]);
+    await db.query('DELETE FROM users WHERE id = $1', [id]);
 
     res.json({ success: true });
   } catch (err) {

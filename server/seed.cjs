@@ -3,11 +3,9 @@ const bcrypt = require('bcryptjs');
 
 async function createTables() {
   try {
-    // Create auth schema and users table
+    // Create users table
     await db.query(`
-      CREATE SCHEMA IF NOT EXISTS auth;
-
-      CREATE TABLE IF NOT EXISTS auth.users (
+      CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
@@ -29,7 +27,7 @@ async function createTables() {
       );
 
       CREATE TABLE IF NOT EXISTS profiles (
-        id UUID PRIMARY KEY REFERENCES auth.users(id),
+        id UUID PRIMARY KEY REFERENCES users(id),
         name VARCHAR(255) NOT NULL,
         role VARCHAR(50) DEFAULT 'client',
         hotel_id UUID REFERENCES hotels(id),
@@ -52,7 +50,7 @@ async function createTables() {
         description TEXT,
         status VARCHAR(50) DEFAULT 'open',
         priority VARCHAR(50) DEFAULT 'medium',
-        user_id UUID REFERENCES auth.users(id),
+        user_id UUID REFERENCES users(id),
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
@@ -114,14 +112,14 @@ async function seedDatabase() {
 
     // Create superadmin user
     const existingSuperAdmin = await db.query(`
-      SELECT id FROM auth.users WHERE email = 'pass@passhoteltest.com'
+      SELECT id FROM users WHERE email = 'pass@passhoteltest.com'
     `);
 
     let superAdminResult;
     if (existingSuperAdmin.rows.length === 0) {
       const hashedSuperAdminPassword = await bcrypt.hash('pass', 10);
       superAdminResult = await db.query(`
-        INSERT INTO auth.users (id, email, password_hash) 
+        INSERT INTO users (id, email, password_hash)
         VALUES (gen_random_uuid(), 'pass@passhoteltest.com', $1)
         RETURNING id
       `, [hashedSuperAdminPassword]);
@@ -134,14 +132,14 @@ async function seedDatabase() {
 
     // Create demo hotel admin
     const existingHotelAdmin = await db.query(`
-      SELECT id FROM auth.users WHERE email = 'admin@example.com'
+      SELECT id FROM users WHERE email = 'admin@example.com'
     `);
 
     let hotelAdminResult;
     if (existingHotelAdmin.rows.length === 0) {
       const hashedPassword = await bcrypt.hash('password', 10);
       hotelAdminResult = await db.query(`
-        INSERT INTO auth.users (id, email, password_hash) 
+        INSERT INTO users (id, email, password_hash)
         VALUES (gen_random_uuid(), 'admin@example.com', $1)
         RETURNING id
       `, [hashedPassword]);

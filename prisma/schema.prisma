@@ -9,6 +9,7 @@ generator client {
 
 model User {
   id           String   @id @default(uuid())
+  tenantId     Int
   email        String   @unique
   passwordHash String
   createdAt    DateTime @default(now())
@@ -19,6 +20,7 @@ model User {
 
 model Profile {
   id        String   @id
+  tenantId  Int
   name      String
   role      String   @default("client")
   hotel     Hotel?   @relation(fields: [hotelId], references: [id])
@@ -30,6 +32,7 @@ model Profile {
 
 model Hotel {
   id              String          @id @default(uuid())
+  tenantId        Int
   name            String
   description     String?
   logoUrl         String?
@@ -42,6 +45,7 @@ model Hotel {
 
 model HotelLanguage {
   id        String  @id @default(uuid())
+  tenantId  Int
   hotel     Hotel   @relation(fields: [hotelId], references: [id])
   hotelId   String
   langCode  String
@@ -52,6 +56,7 @@ model HotelLanguage {
 
 model SupportTicket {
   id        String   @id @default(uuid())
+  tenantId  Int
   title     String
   description String?
   status    String   @default("open")
@@ -64,6 +69,7 @@ model SupportTicket {
 
 model SubscriptionPlan {
   id        String   @id @default(uuid())
+  tenantId  Int
   name      String
   price     Decimal
   features  Json?
@@ -73,5 +79,6 @@ model SubscriptionPlan {
 
 model Language {
   code String @id
+  tenantId Int
   name String
 }
