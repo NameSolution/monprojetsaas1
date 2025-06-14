@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "seed": "node server/seed.cjs",
+    "seed": "node server/seed.mjs",
     "start": "node index.cjs"
   },
   "dependencies": {
