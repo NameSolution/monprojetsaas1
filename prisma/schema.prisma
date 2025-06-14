@@ -17,6 +17,7 @@ model User {
   profile   Profile?
 
   @@map("users")
+  @@schema("auth")
 }
 
 model Profile {
@@ -25,4 +26,5 @@ model Profile {
   user      User   @relation(fields: [userId], references: [id])
 
   @@map("profiles")
+  @@schema("public")
 }
