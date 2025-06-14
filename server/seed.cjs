@@ -1,28 +1,43 @@
-#!/usr/bin/env node
-const db = require('./db.cjs');
-const bcrypt = require('bcryptjs');
-
-async function createTables() {
-  try {
-    // pgcrypto pour gen_random_uuid()
-    await db.query(`
-      CREATE EXTENSION IF NOT EXISTS pgcrypto;
-    `);
-
-    // Si les tables existent déjà, on ajoute la colonne tenant_id si nécessaire
-    await db.query(`
-      ALTER TABLE public.users              ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
-      ALTER TABLE public.hotels             ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
-      ALTER TABLE public.profiles           ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
-      ALTER TABLE public.hotel_languages    ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
-      ALTER TABLE public.support_tickets    ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
-      ALTER TABLE public.subscription_plans ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
-      ALTER TABLE public.languages          ADD COLUMN IF NOT EXISTS tenant_id   INT NOT NULL DEFAULT 1;
-    `);
-
-    // Création (si non existantes) de toutes les tables dans public
-    await db.query(`
+    // ensure pgcrypto extension and add tenant_id columns if missing
+      ALTER TABLE IF EXISTS public.users ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
+      ALTER TABLE IF EXISTS public.hotels ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
+      ALTER TABLE IF EXISTS public.profiles ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
+      ALTER TABLE IF EXISTS public.hotel_languages ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
+      ALTER TABLE IF EXISTS public.support_tickets ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
+      ALTER TABLE IF EXISTS public.subscription_plans ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
+      ALTER TABLE IF EXISTS public.languages ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
       CREATE TABLE IF NOT EXISTS public.users (
+        tenant_id INT NOT NULL DEFAULT 1,
+      CREATE TABLE IF NOT EXISTS public.hotels (
+        tenant_id INT NOT NULL DEFAULT 1,
+
+      CREATE TABLE IF NOT EXISTS public.profiles (
+        id UUID PRIMARY KEY REFERENCES public.users(id),
+        tenant_id INT NOT NULL DEFAULT 1,
+        hotel_id UUID REFERENCES public.hotels(id),
+      CREATE TABLE IF NOT EXISTS public.hotel_languages (
+        tenant_id INT NOT NULL DEFAULT 1,
+        hotel_id UUID REFERENCES public.hotels(id),
+      CREATE TABLE IF NOT EXISTS public.support_tickets (
+        tenant_id INT NOT NULL DEFAULT 1,
+        user_id UUID REFERENCES public.users(id),
+      CREATE TABLE IF NOT EXISTS public.subscription_plans (
+        tenant_id INT NOT NULL DEFAULT 1,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(name)
+      CREATE TABLE IF NOT EXISTS public.languages (
+        tenant_id INT NOT NULL DEFAULT 1,
+      INSERT INTO public.subscription_plans (name, price, features)
+      INSERT INTO public.hotels (id, name, description)
+      INSERT INTO public.languages (code, name) VALUES
+      SELECT id FROM public.users WHERE email = 'pass@passhoteltest.com'
+        INSERT INTO public.users (id, email, password_hash)
+        INSERT INTO public.profiles (id, name, role)
+      SELECT id FROM public.users WHERE email = 'admin@example.com'
+
+        INSERT INTO public.users (id, email, password_hash)
+        INSERT INTO public.profiles (id, name, role, hotel_id)
+        INSERT INTO public.hotel_languages (hotel_id, lang_code) VALUES
         id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id      INT         NOT NULL DEFAULT 1,
         email          VARCHAR(255) UNIQUE NOT NULL,
