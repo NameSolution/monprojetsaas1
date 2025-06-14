@@ -1,17 +1,16 @@
 #!/usr/bin/env node
 
-// Charge la pool Postgres
 const db = require('./db.cjs');
 const bcrypt = require('bcryptjs');
 
 async function createTables() {
   try {
-    // Extension pgcrypto pour gen_random_uuid()
+    // pgcrypto pour gen_random_uuid()
     await db.query(`
       CREATE EXTENSION IF NOT EXISTS pgcrypto;
     `);
 
-    // Tables dans le schéma public
+    // Tables du schéma public, toutes avec tenant_id
     await db.query(`
       CREATE TABLE IF NOT EXISTS public.users (
         id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -95,7 +94,7 @@ async function seedDatabase() {
     await createTables();
     console.log('🚀 Début du seed de la base…');
 
-    // Plans d’abonnement
+    // Subscription plans
     await db.query(`
       INSERT INTO public.subscription_plans (tenant_id, name, price, features)
       VALUES
@@ -105,14 +104,14 @@ async function seedDatabase() {
       ON CONFLICT (name) DO NOTHING;
     `);
 
-    // Hôtel de démonstration
+    // Demo hotel
     await db.query(`
       INSERT INTO public.hotels (id, tenant_id, name, description)
       VALUES ('550e8400-e29b-41d4-a716-446655440000', 1, 'Demo Hotel', 'A demonstration hotel for testing')
       ON CONFLICT (id) DO NOTHING;
     `);
 
-    // Langues
+    // Languages
     await db.query(`
       INSERT INTO public.languages (code, tenant_id, name) VALUES
         ('fr', 1, 'Français'),
@@ -138,7 +137,7 @@ async function seedDatabase() {
       );
     }
 
-    // Admin démo hôtel
+    // Hotel Admin
     const { rows: ha } = await db.query(
       `SELECT id FROM public.users WHERE email = 'admin@example.com'`
     );
@@ -172,7 +171,6 @@ async function seedDatabase() {
   }
 }
 
-// Exécute le seed si on appelle ce fichier directement
 if (require.main === module) {
   seedDatabase();
 }
