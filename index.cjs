@@ -43,7 +43,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve React app for all other routes. Express 5 requires a valid pattern.
-app.get(/.*/, (req, res) => {
+app.get('/*path', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 

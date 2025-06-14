@@ -3,6 +3,12 @@ const bcrypt = require('bcryptjs');
 
 async function createTables() {
   try {
+    // ensure schema and extension
+    await db.query(`
+      CREATE SCHEMA IF NOT EXISTS auth;
+      CREATE EXTENSION IF NOT EXISTS pgcrypto;
+    `);
+
     // Create users table
     await db.query(`
       CREATE TABLE IF NOT EXISTS users (

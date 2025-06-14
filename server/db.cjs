@@ -8,6 +8,8 @@ const pool = new Pool({
   database: process.env.DB_NAME || 'hotelbot',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'password',
+  // use auth schema by default, fallback to public
+  options: '-c search_path=auth,public'
 });
 
 // Test connection
