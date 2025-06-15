@@ -227,3 +227,4 @@ npm start
 
 ## 🌐 Déploiement
 Le projet est configuré pour un déploiement sur Replit avec auto-scaling. Vous pouvez aussi l'héberger sur tout autre service compatible Node.js (Docker, VPS, etc.). Une fois le backend développé et PostgreSQL configuré, exécutez `npm run build` puis `npm start` pour démarrer l'application en production.
+
