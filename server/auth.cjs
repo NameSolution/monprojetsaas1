@@ -1,3 +1,4 @@
+// server/auth.cjs
 
 const express = require('express');
 const bcrypt = require('bcryptjs');
@@ -54,8 +55,9 @@ router.post('/login', async (req, res) => {
     const result = await db.query(
       `SELECT u.*, p.role, p.hotel_id, p.name
        FROM users u
-       LEFT JOIN profiles p ON u.id = p.id
-       WHERE u.email = $1`,
+       LEFT JOIN profiles p ON u.id = p.user_id
+       WHERE u.email = $1
+       LIMIT 1`,
       [email]
     );
     console.log('User query result', result.rows);
