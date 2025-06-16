@@ -76,7 +76,7 @@ Interface utilisateur finale avec laquelle les clients de l'hôtel interagissent
 ## 🚀 Démarrage Rapide (Frontend avec Données Simulées)
 
 ### Prérequis
-- **Node.js** : Version 20 ou supérieure.
+- **Node.js** : Version 18 ou supérieure.
 - **Git** : Pour cloner le projet.
 
 ### Installation
@@ -186,9 +186,13 @@ Voici un aperçu des tables principales que votre backend et votre base de donn�
     -   `created_at` (TIMESTAMPTZ).
     -   `updated_at` (TIMESTAMPTZ).
 
-9.  **`settings`** (Paramètre# HotelBot AI SaaS - Plateforme de Chatbot pour Hôtels
-
-Plateforme complète de chatbot IA pour hôtels avec dashboard d'administration.
+9.  **`settings`**
+    - `id` (UUID, Primary Key)
+    - `tenant_id` (INT)
+    - `key` (TEXT, Unique)
+    - `value` (TEXT)
+    - `created_at` (TIMESTAMPTZ)
+    - `updated_at` (TIMESTAMPTZ)
 
 ## 🚀 Installation Rapide
 
@@ -210,7 +214,7 @@ chmod +x setup.sh && ./setup.sh
 npm install
 node server/seed.cjs
 npm run build
-node index.cjs
+npm start
 ```
 
 ## 📋 Comptes de test
@@ -226,4 +230,5 @@ node index.cjs
 ```
 
 ## 🌐 Déploiement
-Le projet est configuré pour un déploiement sur Replit avec auto-scaling.ntend robuste et complète. La prochaine étape majeure est la construction du backend et de la base de données pour lui donner vie avec des données réelles et persistantes.
+Le projet est configuré pour un déploiement sur Replit avec auto-scaling. Vous pouvez aussi l'héberger sur tout autre service compatible Node.js (Docker, VPS, etc.). Une fois le backend développé et PostgreSQL configuré, exécutez `npm run build` puis `npm start` pour démarrer l'application en production.
+

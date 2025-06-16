@@ -4,10 +4,10 @@ const db = require('./db.cjs');
 
 const router = express.Router();
 
-// Get all plans
+// Get all subscription plans
 router.get('/', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM plans ORDER BY price ASC');
+    const result = await db.query('SELECT * FROM subscription_plans ORDER BY price ASC');
     res.json(result.rows);
   } catch (err) {
     console.error(err);
@@ -15,13 +15,13 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Create plan
+// Create subscription plan
 router.post('/', async (req, res) => {
   try {
-    const { name, price, features, max_hotels } = req.body;
+    const { tenantId = 1, name, price, features } = req.body;
     const result = await db.query(
-      'INSERT INTO plans (name, price, features, max_hotels) VALUES ($1, $2, $3, $4) RETURNING *',
-      [name, price, features, max_hotels]
+      'INSERT INTO subscription_plans (tenant_id, name, price, features) VALUES ($1, $2, $3, $4) RETURNING *',
+      [tenantId, name, price, features]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -30,13 +30,13 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Update plan
+// Update subscription plan
 router.put('/:id', async (req, res) => {
   try {
-    const { name, price, features, max_hotels } = req.body;
+    const { name, price, features } = req.body;
     const result = await db.query(
-      'UPDATE plans SET name = $1, price = $2, features = $3, max_hotels = $4, updated_at = NOW() WHERE id = $5 RETURNING *',
-      [name, price, features, max_hotels, req.params.id]
+      'UPDATE subscription_plans SET name = $1, price = $2, features = $3, updated_at = NOW() WHERE id = $4 RETURNING *',
+      [name, price, features, req.params.id]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -45,10 +45,10 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Delete plan
+// Delete subscription plan
 router.delete('/:id', async (req, res) => {
   try {
-    await db.query('DELETE FROM plans WHERE id = $1', [req.params.id]);
+    await db.query('DELETE FROM subscription_plans WHERE id = $1', [req.params.id]);
     res.json({ message: 'Plan deleted successfully' });
   } catch (err) {
     console.error(err);
