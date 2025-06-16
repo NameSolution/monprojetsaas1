@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import apiService from '../services/api';
 
-export const useSuperAdminData = () => {
+export const useSuperAdminData = (resource) => {
   const [hotels, setHotels] = useState([]);
   const [users, setUsers] = useState([]);
   const [plans, setPlans] = useState([]);
@@ -123,22 +123,27 @@ export const useSuperAdminData = () => {
     }
   };
 
-  return {
+  const dataMap = {
     hotels,
     users,
     plans,
     supportTickets,
     analytics,
+  };
+
+  return {
+    data: dataMap[resource] || null,
+    allData: { hotels, users, plans, supportTickets, analytics },
     loading,
     error,
-    createHotel,
+    addHotel: createHotel,
     updateHotel,
     deleteHotel,
-    createUser,
+    addUser: createUser,
     updateUser,
     deleteUser,
     createSupportTicket,
     updateSupportTicket,
-    refetch: fetchData
+    refetch: fetchData,
   };
 };

@@ -12,7 +12,7 @@ const authMiddleware = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key-change-in-production');
     req.user = {
       id: decoded.id || decoded.userId,
-      role: decoded.role
+      role: typeof decoded.role === 'string' ? decoded.role.trim() : decoded.role
     };
     next();
   } catch (error) {
