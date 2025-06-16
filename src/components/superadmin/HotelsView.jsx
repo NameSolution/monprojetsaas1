@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchPlans } from '@/services/superAdminDataService';
+import apiService from '@/services/api';
 
 
 const HotelsView = () => {
@@ -56,7 +56,7 @@ const HotelsView = () => {
 
     useEffect(() => {
         const loadPlans = async () => {
-            const fetchedPlans = await fetchPlans();
+            const fetchedPlans = await apiService.getPlans();
             setPlans(fetchedPlans);
             if (fetchedPlans.length > 0 && !currentHotelData.plan_id) {
                 setCurrentHotelData(prev => ({ ...prev, plan_id: fetchedPlans[0].id }));

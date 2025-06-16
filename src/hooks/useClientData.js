@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react';
 import apiService from '../services/api';
 
 export const useClientData = () => {
-  const [hotel, setHotel] = useState(null);
-  const [analytics, setAnalytics] = useState({
-    totalInteractions: 0,
-    monthlyInteractions: 0,
-    weeklyInteractions: 0,
-    dailyInteractions: []
-  });
+  const [profile, setProfile] = useState(null);
+  const [customization, setCustomization] = useState(null);
+  const [analytics, setAnalytics] = useState({});
   const [supportTickets, setSupportTickets] = useState([]);
+  const [availableLanguages, setAvailableLanguages] = useState([]);
+  const [hotelId, setHotelId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -22,9 +20,29 @@ export const useClientData = () => {
         apiService.getSupportTickets()
       ]);
 
-      setHotel(hotelData);
-      setAnalytics(analyticsData);
-      setSupportTickets(ticketsData);
+      if (hotelData) {
+        setHotelId(hotelData.id);
+        setProfile({
+          hotelName: hotelData.name,
+          contactEmail: hotelData.contact_email,
+          contactName: hotelData.contact_name,
+          notificationEmail: hotelData.contact_email,
+          slug: hotelData.slug
+        });
+        setCustomization({
+          name: hotelData.name,
+          welcomeMessage: hotelData.welcome_message,
+          primaryColor: hotelData.theme_color,
+          logoUrl: hotelData.logo_url,
+          defaultLanguage: hotelData.default_lang_code
+        });
+        if (hotelData.languages) {
+          setAvailableLanguages(hotelData.languages);
+        }
+      }
+
+      setAnalytics(analyticsData || {});
+      setSupportTickets(ticketsData || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -36,11 +54,47 @@ export const useClientData = () => {
     fetchData();
   }, []);
 
-  const updateHotel = async (hotelData) => {
+  const updateProfile = async (profileData) => {
+    if (!hotelId) return null;
     try {
-      const updatedHotel = await apiService.updateHotel(hotel.id, hotelData);
-      setHotel(updatedHotel);
-      return updatedHotel;
+      const updated = await apiService.updateHotel(hotelId, {
+        name: profileData.hotelName,
+        contact_name: profileData.contactName,
+        contact_email: profileData.contactEmail
+      });
+      setProfile(prev => ({ ...prev, ...profileData }));
+      return updated;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const updateCustomization = async (config) => {
+    if (!hotelId) return null;
+    try {
+      const updated = await apiService.updateHotel(hotelId, {
+        name: config.name,
+        welcome_message: config.welcomeMessage,
+        theme_color: config.primaryColor,
+        logo_url: config.logoUrl,
+        default_lang_code: config.defaultLanguage
+      });
+      setCustomization(prev => ({ ...prev, ...config }));
+      return updated;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const updateHotelLanguages = async (langs, defaultLang) => {
+    if (!hotelId) return null;
+    try {
+      const updated = await apiService.updateHotel(hotelId, {
+        default_lang_code: defaultLang
+      });
+      setAvailableLanguages(langs);
+      setCustomization(prev => ({ ...prev, defaultLanguage: defaultLang }));
+      return updated;
     } catch (err) {
       throw err;
     }
@@ -50,7 +104,7 @@ export const useClientData = () => {
     try {
       const newTicket = await apiService.createSupportTicket({
         ...ticketData,
-        hotel_id: hotel.id
+        hotel_id: hotelId
       });
       setSupportTickets(prev => [...prev, newTicket]);
       return newTicket;
@@ -60,12 +114,17 @@ export const useClientData = () => {
   };
 
   return {
-    hotel,
+    profile,
+    customization,
     analytics,
     supportTickets,
+    availableLanguages,
+    hotelId,
     loading,
     error,
-    updateHotel,
+    updateProfile,
+    updateCustomization,
+    updateHotelLanguages,
     createSupportTicket,
     refetch: fetchData
   };

@@ -47,14 +47,16 @@ router.post('/register', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+    if (typeof email === 'string') email = email.trim();
+    if (typeof password === 'string') password = password.trim();
     console.log('Login attempt for', email);
 
     // Check if user exists and load profile data
     const result = await db.query(
       `SELECT u.*, p.role, p.hotel_id, p.name
        FROM users u
-       LEFT JOIN profiles p ON u.id = p.id
+       LEFT JOIN profiles p ON u.id = p.user_id
        WHERE u.email = $1`,
       [email]
     );
@@ -64,6 +66,13 @@ router.post('/login', async (req, res) => {
     }
 
     const user = result.rows[0];
+    // Sanitize values in case seed data contains trailing whitespace
+    if (user.password_hash) {
+      user.password_hash = user.password_hash.trim();
+    }
+    if (user.role) {
+      user.role = user.role.trim();
+    }
     console.log('Comparing password for', user.email, 'hash', user.password_hash);
 
     // Ensure password hash exists before comparing

@@ -9,6 +9,8 @@ async function createTables() {
       ALTER TABLE IF EXISTS public.users ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
       ALTER TABLE IF EXISTS public.hotels ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
       ALTER TABLE IF EXISTS public.profiles ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
+      ALTER TABLE IF EXISTS public.profiles ADD COLUMN IF NOT EXISTS user_id UUID UNIQUE;
+      ALTER TABLE IF EXISTS public.profiles ADD CONSTRAINT IF NOT EXISTS profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
       ALTER TABLE IF EXISTS public.hotel_languages ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
       ALTER TABLE IF EXISTS public.support_tickets ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
       ALTER TABLE IF EXISTS public.subscription_plans ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
@@ -41,11 +43,12 @@ async function createTables() {
       );
 
       CREATE TABLE IF NOT EXISTS public.profiles (
-        id UUID PRIMARY KEY REFERENCES public.users(id),
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id INT NOT NULL DEFAULT 1,
         name VARCHAR(255) NOT NULL,
         role VARCHAR(50) DEFAULT 'client',
         hotel_id UUID REFERENCES public.hotels(id),
+        user_id UUID UNIQUE REFERENCES public.users(id),
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
@@ -145,7 +148,7 @@ async function seedDatabase() {
       `, [hashedSuperAdminPassword]);
 
       await db.query(`
-        INSERT INTO public.profiles (id, name, role)
+        INSERT INTO public.profiles (user_id, name, role)
         VALUES ($1, 'Super Admin', 'superadmin')
       `, [superAdminResult.rows[0].id]);
     }
@@ -165,7 +168,7 @@ async function seedDatabase() {
       `, [hashedPassword]);
 
       await db.query(`
-        INSERT INTO public.profiles (id, name, role, hotel_id)
+        INSERT INTO public.profiles (user_id, name, role, hotel_id)
         VALUES ($1, 'Admin Demo', 'admin', '550e8400-e29b-41d4-a716-446655440000')
       `, [hotelAdminResult.rows[0].id]);
 

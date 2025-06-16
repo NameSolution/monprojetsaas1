@@ -81,7 +81,7 @@ class ApiService {
 
   // Analytics methods
   async getAnalytics() {
-    return this.request('/analytics');
+    return this.request('/analytics/overview');
   }
 
   // Support methods
@@ -100,6 +100,12 @@ class ApiService {
     return this.request(`/support/tickets/${id}`, {
       method: 'PUT',
       body: ticketData,
+    });
+  }
+
+  async deleteSupportTicket(id) {
+    return this.request(`/support/tickets/${id}`, {
+      method: 'DELETE'
     });
   }
 

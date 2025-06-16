@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
     const result = await db.query(`
       SELECT p.*, u.email, h.name as hotel_name
       FROM profiles p
-      JOIN users u ON p.id = u.id
+      JOIN users u ON p.user_id = u.id
       LEFT JOIN hotels h ON p.hotel_id = h.id
       ORDER BY p.created_at DESC
     `);
@@ -47,7 +47,7 @@ router.post('/', async (req, res) => {
     const userId = userRes.rows[0].id;
 
     const profileRes = await db.query(
-      "INSERT INTO profiles (id, name, role, hotel_id) VALUES ($1, $2, $3, $4) RETURNING *",
+      "INSERT INTO profiles (user_id, name, role, hotel_id) VALUES ($1, $2, $3, $4) RETURNING *",
       [userId, name, role, hotel_id]
     );
 
@@ -69,9 +69,9 @@ router.put('/:id', async (req, res) => {
     }
 
     const result = await db.query(`
-      UPDATE profiles 
+      UPDATE profiles
       SET name = $1, role = $2, hotel_id = $3, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $4
+      WHERE user_id = $4
       RETURNING *
     `, [name, role, hotel_id, id]);
 
@@ -95,7 +95,7 @@ router.delete('/:id', async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    await db.query('DELETE FROM profiles WHERE id = $1', [id]);
+    await db.query('DELETE FROM profiles WHERE user_id = $1', [id]);
     await db.query('DELETE FROM users WHERE id = $1', [id]);
 
     res.json({ success: true });

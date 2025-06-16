@@ -32,14 +32,16 @@ const ProtectedRouteInner = ({ children, allowedRoles }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  const userRole = user.role ? user.role.trim() : '';
+
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
      if(location.pathname !== "/login" && location.pathname !== "/") {
         toast({ variant: "destructive", title: "Accès Interdit", description: "Vous n'avez pas les droits pour accéder à cette page." });
      }
-    return <Navigate to="/login" state={{ from: location }} replace />; 
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
-  
-  if ((user.role === 'admin' || user.role === 'manager') && !user.hotel_id) {
+
+  if ((userRole === 'admin' || userRole === 'manager') && !user.hotel_id) {
     if(location.pathname !== "/login" && location.pathname !== "/") {
         toast({ variant: "destructive", title: "Configuration Requise", description: "Votre compte n'est lié à aucun hôtel. Contactez le support."});
     }

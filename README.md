@@ -89,7 +89,9 @@ Interface utilisateur finale avec laquelle les clients de l'hôtel interagissent
     ```bash
     npm run dev
     ```
-L'application sera accessible à `http://localhost:5173`.
+    Les requêtes commençant par `/api` seront automatiquement
+    proxyfées vers le backend Express sur le port `5000`.
+    L'application sera accessible à `http://localhost:5173`.
 
 ### Comptes de Test (Simulés)
 Utilisez les identifiants suivants sur la page de connexion :
@@ -108,18 +110,17 @@ Utilisez les identifiants suivants sur la page de connexion :
 Voici un aperçu des tables principales que votre backend et votre base de données PostgreSQL locale devront gérer. Ces définitions servent de guide.
 
 1.  **`profiles`**
-    -   `id` (UUID, Primary Key): Identifiant unique de l'utilisateur.
+    -   `id` (UUID, Primary Key) : identifiant du profil.
+    -   `user_id` (UUID, Unique, Foreign Key vers `users.id`).
     -   `name` (TEXT).
-    -   `email` (TEXT, Unique): Email de l'utilisateur.
-    -   `password_hash` (TEXT): Hash du mot de passe.
-    -   `role` (TEXT): Rôle (`superadmin`, `admin`, `manager`).
+    -   `role` (TEXT) : `superadmin`, `admin`, `manager`.
     -   `hotel_id` (UUID, Foreign Key vers `hotels.id`, NULL pour superadmins).
     -   `created_at` (TIMESTAMPTZ).
     -   `updated_at` (TIMESTAMPTZ).
 
 2.  **`hotels`**
     -   `id` (UUID, Primary Key).
-    -   `user_id` (UUID, Foreign Key vers `profiles.id`): Admin principal de l'hôtel.
+    -   `user_id` (UUID, Foreign Key vers `users.id`): Admin principal de l'hôtel.
     -   `name` (TEXT).
     -   `slug` (TEXT, Unique).
     -   `plan_id` (UUID, Foreign Key vers `plans.id`).
@@ -173,7 +174,7 @@ Voici un aperçu des tables principales que votre backend et votre base de donn�
 
 8.  **`support_tickets`**
     -   `id` (BIGINT, PK, auto-increment).
-    -   `user_id` (UUID, FK vers `profiles.id`, optionnel).
+    -   `user_id` (UUID, FK vers `users.id`, optionnel).
     -   `hotel_id` (UUID, FK vers `hotels.id`, optionnel).
     -   `submitter_name` (TEXT).
     -   `submitter_email` (TEXT).
@@ -181,7 +182,7 @@ Voici un aperçu des tables principales que votre backend et votre base de donn�
     -   `message` (TEXT).
     -   `status` (TEXT): (`Nouveau`, `En cours`, `Résolu`, `Fermé`).
     -   `priority` (TEXT): (`Basse`, `Moyenne`, `Haute`).
-    -   `assigned_to_user_id` (UUID, FK vers `profiles.id`, optionnel).
+    -   `assigned_to_user_id` (UUID, FK vers `users.id`, optionnel).
     -   `internal_notes` (TEXT, optionnel).
     -   `created_at` (TIMESTAMPTZ).
     -   `updated_at` (TIMESTAMPTZ).
@@ -216,6 +217,8 @@ node server/seed.cjs
 npm run build
 npm start
 ```
+Pensez à relancer `npm run build` après toute modification du code React
+avant de démarrer le serveur en production.
 
 ## 📋 Comptes de test
 - **Super Admin** : `pass@passhoteltest.com` / `pass`

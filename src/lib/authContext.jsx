@@ -21,7 +21,11 @@ export const AuthProvider = ({ children }) => {
 
     if (token && userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        if (parsedUser.role && typeof parsedUser.role === 'string') {
+          parsedUser.role = parsedUser.role.trim();
+        }
+        setUser(parsedUser);
       } catch (error) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -34,6 +38,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiService.login(email, password);
       const { token, user } = response;
+      if (user && typeof user.role === 'string') {
+        user.role = user.role.trim();
+      }
 
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
@@ -49,6 +56,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiService.signup(userData);
       const { token, user } = response;
+      if (user && typeof user.role === 'string') {
+        user.role = user.role.trim();
+      }
 
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
