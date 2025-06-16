@@ -43,7 +43,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve React app for all other routes using a catch-all pattern
-app.get('/*path', (req, res) => {
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
