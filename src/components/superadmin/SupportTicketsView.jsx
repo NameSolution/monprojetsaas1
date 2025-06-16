@@ -36,6 +36,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useSuperAdminData } from '@/hooks/useSuperAdminData';
+import apiService from '@/services/api';
 
 
 const TicketStatusBadge = ({ status }) => {
@@ -75,21 +76,19 @@ const SupportTicketsView = () => {
   };
   
   const confirmDeleteTicket = async () => {
-     if(!ticketToDelete) return;
-     setIsDeleting(true);
-     
-     // Simulating delete from superAdminDataService
-     const { deleteSupportTicket } = await import('@/services/superAdminDataService');
-     const success = await deleteSupportTicket(ticketToDelete.id);
+    if (!ticketToDelete) return;
+    setIsDeleting(true);
 
-     if (success) {
-        setGlobalTickets(prevTickets => prevTickets.filter(t => t.id !== ticketToDelete.id));
-        toast({ title: "Ticket supprimé (Simulé)" });
-     } else {
-        toast({ variant: "destructive", title: "Erreur de suppression (Simulé)" });
-     }
-     setTicketToDelete(null);
-     setIsDeleting(false);
+    try {
+      await apiService.deleteSupportTicket(ticketToDelete.id);
+      setGlobalTickets(prev => prev.filter(t => t.id !== ticketToDelete.id));
+      toast({ title: 'Ticket supprimé' });
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Erreur de suppression', description: err.message });
+    } finally {
+      setTicketToDelete(null);
+      setIsDeleting(false);
+    }
   };
 
 

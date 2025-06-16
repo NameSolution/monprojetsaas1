@@ -103,6 +103,12 @@ class ApiService {
     });
   }
 
+  async deleteSupportTicket(id) {
+    return this.request(`/support/tickets/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
   // Users methods
   async getUsers() {
     return this.request('/users');

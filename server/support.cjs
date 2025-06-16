@@ -45,4 +45,19 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// Delete support ticket (superadmin only)
+router.delete('/:id', async (req, res) => {
+  try {
+    if (req.user.role !== 'superadmin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    await db.query('DELETE FROM support_tickets WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;
