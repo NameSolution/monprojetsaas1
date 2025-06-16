@@ -50,6 +50,9 @@ router.get('/my-hotel', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, description, logo_url, default_lang_code } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Hotel name is required' });
+    }
     const result = await db.query(
       `INSERT INTO hotels (name, description, logo_url, default_lang_code)
        VALUES ($1, $2, $3, $4)

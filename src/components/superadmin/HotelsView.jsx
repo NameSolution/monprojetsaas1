@@ -104,12 +104,16 @@ const HotelsView = () => {
             status: currentHotelData.status,
         };
 
-        if (editingHotel) {
-            await updateHotel(editingHotel.id, dataToSave);
-        } else {
-            await addHotel(dataToSave);
+        try {
+            if (editingHotel) {
+                await updateHotel(editingHotel.id, dataToSave);
+            } else {
+                await addHotel(dataToSave);
+            }
+            setIsModalOpen(false);
+        } catch (err) {
+            toast({ variant: 'destructive', title: 'Erreur', description: err.message });
         }
-        setIsModalOpen(false);
     };
 
     const handleViewHotelDetails = (hotel) => {
