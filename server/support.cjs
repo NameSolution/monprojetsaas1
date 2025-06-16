@@ -5,7 +5,7 @@ const db = require('./db.cjs');
 const router = express.Router();
 
 // Get all support tickets
-router.get('/', async (req, res) => {
+router.get('/tickets', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM support_tickets ORDER BY created_at DESC');
     res.json(result.rows);
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create support ticket
-router.post('/', async (req, res) => {
+router.post('/tickets', async (req, res) => {
   try {
     const { subject, message, priority } = req.body;
     const result = await db.query(
@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update support ticket
-router.put('/:id', async (req, res) => {
+router.put('/tickets/:id', async (req, res) => {
   try {
     const { status, response } = req.body;
     const result = await db.query(
@@ -46,7 +46,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete support ticket (superadmin only)
-router.delete('/:id', async (req, res) => {
+router.delete('/tickets/:id', async (req, res) => {
   try {
     if (req.user.role !== 'superadmin') {
       return res.status(403).json({ error: 'Access denied' });
