@@ -14,10 +14,30 @@ export const useClientData = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      const hotelPromise = apiService
+        .getMyHotel()
+        .catch((err) => {
+          console.error('getMyHotel failed:', err);
+          setError('hotel');
+          return null;
+        });
+      const analyticsPromise = apiService
+        .getAnalytics()
+        .catch((err) => {
+          console.error('getAnalytics failed:', err);
+          return {};
+        });
+      const ticketsPromise = apiService
+        .getSupportTickets()
+        .catch((err) => {
+          console.error('getSupportTickets failed:', err);
+          return [];
+        });
+
       const [hotelData, analyticsData, ticketsData] = await Promise.all([
-        apiService.getMyHotel(),
-        apiService.getAnalytics(),
-        apiService.getSupportTickets()
+        hotelPromise,
+        analyticsPromise,
+        ticketsPromise,
       ]);
 
       if (hotelData) {

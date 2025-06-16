@@ -21,6 +21,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 const DashboardView = () => {
   const { stats, recentConversations, profile, loading } = useClientData();
 
+  if (!profile) {
+    return <div>Chargement du profil hôtel...</div>;
+  }
+
   const handleViewConversation = (convId) => {
     toast({
         title: "Voir Conversation",
