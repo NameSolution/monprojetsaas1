@@ -151,7 +151,7 @@ const CustomizeView = () => {
                                     >
                                         Choisir un fichier
                                     </Button>
-                                    {logoPreview && <img-replace src={logoPreview} alt="Aperçu du logo" className="mt-4 max-h-20 mx-auto object-contain" />}
+                                    {logoPreview && <img src={logoPreview} alt="Aperçu du logo" className="mt-4 max-h-20 mx-auto object-contain" />}
                                 </div>
                             </div>
 
@@ -174,7 +174,7 @@ const CustomizeView = () => {
                                     className="w-8 h-8 rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold"
                                     style={{ backgroundColor: chatbotConfig.primaryColor }}
                                 >
-                                    {logoPreview ? <img-replace src={logoPreview} alt="Logo" className="w-6 h-6 rounded-full object-cover" /> : <Bot className="w-4 h-4" />}
+                                    {logoPreview ? <img src={logoPreview} alt="Logo" className="w-6 h-6 rounded-full object-cover" /> : <Bot className="w-4 h-4" />}
                                 </div>
                                 <span className="font-semibold text-foreground text-sm">{chatbotConfig.name}</span>
                                 </div>

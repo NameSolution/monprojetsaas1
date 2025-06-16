@@ -139,8 +139,8 @@ const QRCodeView = () => {
                     <div className="text-center">
                         <h4 className="text-foreground font-medium mb-4 components-client-QRCodeView__text-foreground">QR Code</h4>
                         <div className="qr-code-container inline-block p-2 bg-white rounded-md">
-                        {chatbotUrl ? 
-                            <img-replace alt="QR Code pour accéder au chatbot de l'hôtel" className="w-48 h-48" src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(chatbotUrl)}`} />
+                        {chatbotUrl ?
+                            <img alt="QR Code pour accéder au chatbot de l'hôtel" className="w-48 h-48" src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(chatbotUrl)}`} />
                             : <Skeleton className="w-48 h-48" />
                         }
                         </div>
