@@ -7,13 +7,13 @@ export const useSuperAdminData = (resource) => {
   const [plans, setPlans] = useState([]);
   const [supportTickets, setSupportTickets] = useState([]);
   const [analytics, setAnalytics] = useState({
-    totalInteractions: 0,
-    monthlyInteractions: 0,
-    weeklyInteractions: 0,
-    totalHotels: 0,
-    totalTickets: 0,
-    openTickets: 0,
-    dailyInteractions: []
+    stats: {
+      totalUsers: 0,
+      totalHotels: 0,
+      totalTickets: 0,
+    },
+    conversationsData: [],
+    plansData: []
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,7 +33,11 @@ export const useSuperAdminData = (resource) => {
       setUsers(usersData);
       setPlans(plansData);
       setSupportTickets(ticketsData);
-      setAnalytics(analyticsData);
+      setAnalytics({
+        stats: analyticsData.stats || {},
+        conversationsData: analyticsData.conversationsData || [],
+        plansData: analyticsData.plansData || []
+      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -130,6 +134,13 @@ export const useSuperAdminData = (resource) => {
     supportTickets,
     analytics,
   };
+  const setterMap = {
+    hotels: setHotels,
+    users: setUsers,
+    plans: setPlans,
+    supportTickets: setSupportTickets,
+    analytics: setAnalytics,
+  };
 
   return {
     data: dataMap[resource] || null,
@@ -145,5 +156,6 @@ export const useSuperAdminData = (resource) => {
     createSupportTicket,
     updateSupportTicket,
     refetch: fetchData,
+    setData: setterMap[resource],
   };
 };
