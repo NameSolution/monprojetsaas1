@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import apiService from '../services/api';
+import crypto from 'crypto';
 
 export const useClientData = () => {
   const [profile, setProfile] = useState(null);
@@ -145,15 +146,23 @@ export const useClientData = () => {
     }
   };
 
-  // Temporary placeholders for knowledge base management
-  const updateKnowledgeBase = async () => {
-    console.warn('updateKnowledgeBase not implemented');
-    return null;
+  // Basic local knowledge base management for now
+  const updateKnowledgeBase = async (item) => {
+    if (!item) return null;
+    setKnowledgeBase((prev) => {
+      if (item.id) {
+        return prev.map((it) => (it.id === item.id ? { ...it, ...item } : it));
+      }
+      const newItem = { ...item, id: crypto.randomUUID() };
+      return [...prev, newItem];
+    });
+    return item;
   };
 
-  const deleteKnowledgeItem = async () => {
-    console.warn('deleteKnowledgeItem not implemented');
-    return null;
+  const deleteKnowledgeItem = async (id) => {
+    if (!id) return null;
+    setKnowledgeBase((prev) => prev.filter((it) => it.id !== id));
+    return id;
   };
 
   return {
