@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
     const result = await db.query(`
       SELECT h.*, p.name as plan_name, pr.name as user_name 
       FROM hotels h 
-      LEFT JOIN plans p ON h.plan_id = p.id 
+      LEFT JOIN subscription_plans p ON h.plan_id = p.id
       LEFT JOIN profiles pr ON h.user_id = pr.id
       ORDER BY h.created_at DESC
     `);
@@ -29,7 +29,7 @@ router.get('/my-hotel', async (req, res) => {
     const result = await db.query(`
       SELECT h.*, p.name as plan_name 
       FROM hotels h 
-      LEFT JOIN plans p ON h.plan_id = p.id 
+      LEFT JOIN subscription_plans p ON h.plan_id = p.id
       WHERE h.user_id = $1 OR EXISTS (
         SELECT 1 FROM profiles pr WHERE pr.id = $1 AND pr.hotel_id = h.id
       )

@@ -7,7 +7,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Servir le frontend
 app.use(express.static(path.join(__dirname, '..', 'dist')));
-app.get('*', (req, res) => {
+// Express 5 requires a valid path pattern. Serve React for any unmatched route
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
 });
 

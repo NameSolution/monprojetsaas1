@@ -1,4 +1,5 @@
-// Express already imported in index.cjs
+// Express already imported in index.cjs, but we need it here for the router
+const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const router = express.Router();
