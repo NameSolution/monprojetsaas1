@@ -121,6 +121,17 @@ export const useClientData = () => {
     }
   };
 
+  const updateSlug = async (newSlug) => {
+    if (!hotelId) return null;
+    try {
+      const updated = await apiService.updateHotel(hotelId, { slug: newSlug });
+      setProfile(prev => ({ ...prev, slug: updated.slug }));
+      return updated;
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const createSupportTicket = async (ticketData) => {
     try {
       const newTicket = await apiService.createSupportTicket({
@@ -158,6 +169,7 @@ export const useClientData = () => {
     updateProfile,
     updateCustomization,
     updateHotelLanguages,
+    updateSlug,
     createSupportTicket,
     updateKnowledgeBase,
     deleteKnowledgeItem,
