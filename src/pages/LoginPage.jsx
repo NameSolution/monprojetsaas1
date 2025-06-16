@@ -32,10 +32,18 @@ const LoginPage = () => {
         } else if (['admin', 'manager'].includes(role) && user.hotel_id) {
           navigate('/client');
         } else if (['admin', 'manager'].includes(role) && !user.hotel_id) {
-          toast({variant: "destructive", title: "Configuration Requise (Simulée)", description: "Votre compte administrateur n'est lié à aucun hôtel. Contactez le Superadmin."});
+          toast({
+            variant: 'destructive',
+            title: 'Configuration Requise',
+            description: "Votre compte administrateur n'est lié à aucun hôtel. Contactez le Superadmin."
+          });
           navigate('/login');
         } else {
-          toast({variant: "destructive", title: "Accès non configuré (Simulé)", description: "Votre rôle ou hôtel n'est pas correctement configuré."});
+          toast({
+            variant: 'destructive',
+            title: 'Accès non configuré',
+            description: "Votre rôle ou hôtel n'est pas correctement configuré."
+          });
           navigate('/login');
         }
       } else if (!success) {
@@ -165,7 +173,7 @@ const LoginPage = () => {
             <a 
               href="#" 
               className="text-primary hover:text-primary/80 transition-colors pages-LoginPage__text-primary pages-LoginPage__hover-text-primary-80"
-              onClick={(e) => { e.preventDefault(); toast({ title: "Support (Simulé)", description: "La page de contact est en construction." })}}
+              onClick={(e) => { e.preventDefault(); toast({ title: "Support", description: "La page de contact est en construction." })}}
             >
               Contactez le support
             </a>

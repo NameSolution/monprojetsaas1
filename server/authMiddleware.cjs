@@ -10,7 +10,10 @@ const authMiddleware = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key-change-in-production');
-    req.user = decoded;
+    req.user = {
+      id: decoded.id || decoded.userId,
+      role: decoded.role
+    };
     next();
   } catch (error) {
     console.error('JWT verification error:', error);

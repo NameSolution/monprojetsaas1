@@ -152,6 +152,11 @@ class ApiService {
       body: planData,
     });
   }
+
+  // Languages methods
+  async getLanguages() {
+    return this.request('/languages');
+  }
 }
 
 export default new ApiService();

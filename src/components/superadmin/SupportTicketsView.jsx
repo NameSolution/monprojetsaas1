@@ -98,9 +98,9 @@ const SupportTicketsView = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-bold text-foreground">Tickets de Support</h2>
-            <p className="text-muted-foreground">Gérez les demandes d'assistance des utilisateurs (simulé).</p>
+            <p className="text-muted-foreground">Gérez les demandes d'assistance des utilisateurs.</p>
           </div>
-          <Button variant="outline" onClick={() => toast({title: "Filtres (Simulé)", description: "Cette fonctionnalité sera bientôt disponible."})}><Filter className="w-4 h-4 mr-2" />Filtrer</Button>
+          <Button variant="outline" onClick={() => toast({title: "Filtres", description: "Cette fonctionnalité sera bientôt disponible."})}><Filter className="w-4 h-4 mr-2" />Filtrer</Button>
         </div>
 
         <div className="overflow-x-auto">
@@ -143,7 +143,7 @@ const SupportTicketsView = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle className="text-foreground">Êtes-vous sûr ?</AlertDialogTitle>
                               <AlertDialogDescription className="text-muted-foreground">
-                                Cette action est irréversible et supprimera définitivement le ticket de support (simulé).
+                                Cette action est irréversible et supprimera définitivement le ticket de support.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

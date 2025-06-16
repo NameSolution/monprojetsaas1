@@ -6,6 +6,7 @@ export const useClientData = () => {
   const [customization, setCustomization] = useState(null);
   const [analytics, setAnalytics] = useState({});
   const [supportTickets, setSupportTickets] = useState([]);
+  const [knowledgeBase, setKnowledgeBase] = useState([]);
   const [availableLanguages, setAvailableLanguages] = useState([]);
   const [hotelId, setHotelId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,10 +15,30 @@ export const useClientData = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      const hotelPromise = apiService
+        .getMyHotel()
+        .catch((err) => {
+          console.error('getMyHotel failed:', err);
+          setError('hotel');
+          return null;
+        });
+      const analyticsPromise = apiService
+        .getAnalytics()
+        .catch((err) => {
+          console.error('getAnalytics failed:', err);
+          return {};
+        });
+      const ticketsPromise = apiService
+        .getSupportTickets()
+        .catch((err) => {
+          console.error('getSupportTickets failed:', err);
+          return [];
+        });
+
       const [hotelData, analyticsData, ticketsData] = await Promise.all([
-        apiService.getMyHotel(),
-        apiService.getAnalytics(),
-        apiService.getSupportTickets()
+        hotelPromise,
+        analyticsPromise,
+        ticketsPromise,
       ]);
 
       if (hotelData) {
@@ -113,10 +134,22 @@ export const useClientData = () => {
     }
   };
 
+  // Temporary placeholders for knowledge base management
+  const updateKnowledgeBase = async () => {
+    console.warn('updateKnowledgeBase not implemented');
+    return null;
+  };
+
+  const deleteKnowledgeItem = async () => {
+    console.warn('deleteKnowledgeItem not implemented');
+    return null;
+  };
+
   return {
     profile,
     customization,
     analytics,
+    knowledgeBase,
     supportTickets,
     availableLanguages,
     hotelId,
@@ -126,6 +159,8 @@ export const useClientData = () => {
     updateCustomization,
     updateHotelLanguages,
     createSupportTicket,
+    updateKnowledgeBase,
+    deleteKnowledgeItem,
     refetch: fetchData
   };
 };
