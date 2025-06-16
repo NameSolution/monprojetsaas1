@@ -18,32 +18,32 @@ const LoginPage = () => {
   const { login, loading, resetPassword } = useAuth();
   const navigate = useNavigate();
 
-    const handleLogin = async (e) => {
-      e.preventDefault();
-      try {
-    const trimmedEmail = formData.email.trim();
-    const trimmedPassword = formData.password.trim();
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const trimmedEmail = formData.email.trim();
+      const trimmedPassword = formData.password.trim();
 
-    const { success, user, error } = await login(trimmedEmail, trimmedPassword);
-        if (success && user) {
-          const role = user.role ? user.role.trim() : '';
-          if (role === 'superadmin') {
-            navigate('/superadmin');
-          } else if (['admin', 'manager'].includes(role) && user.hotel_id) {
-            navigate('/client');
-          } else if (['admin', 'manager'].includes(role) && !user.hotel_id) {
-            toast({variant: "destructive", title: "Configuration Requise (Simulée)", description: "Votre compte administrateur n'est lié à aucun hôtel. Contactez le Superadmin."});
-            navigate('/login');
-          } else {
-            toast({variant: "destructive", title: "Accès non configuré (Simulé)", description: "Votre rôle ou hôtel n'est pas correctement configuré."});
-            navigate('/login');
-          }
-        } else if (!success) {
-          toast({ variant: "destructive", title: "Erreur de connexion", description: error || "Identifiants invalides" });
+      const { success, user, error } = await login(trimmedEmail, trimmedPassword);
+      if (success && user) {
+        const role = user.role ? user.role.trim() : '';
+        if (role === 'superadmin') {
+          navigate('/superadmin');
+        } else if (['admin', 'manager'].includes(role) && user.hotel_id) {
+          navigate('/client');
+        } else if (['admin', 'manager'].includes(role) && !user.hotel_id) {
+          toast({variant: "destructive", title: "Configuration Requise (Simulée)", description: "Votre compte administrateur n'est lié à aucun hôtel. Contactez le Superadmin."});
+          navigate('/login');
+        } else {
+          toast({variant: "destructive", title: "Accès non configuré (Simulé)", description: "Votre rôle ou hôtel n'est pas correctement configuré."});
+          navigate('/login');
         }
-      } catch (error) {
-        toast({ variant: "destructive", title: "Erreur", description: error.message });
+      } else if (!success) {
+        toast({ variant: "destructive", title: "Erreur de connexion", description: error || "Identifiants invalides" });
       }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Erreur", description: error.message });
+    }
   };
   
   const handlePasswordResetRequest = async () => {
