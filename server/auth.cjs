@@ -47,7 +47,9 @@ router.post('/register', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+    if (typeof email === 'string') email = email.trim();
+    if (typeof password === 'string') password = password.trim();
     console.log('Login attempt for', email);
 
     // Check if user exists and load profile data
@@ -64,10 +66,12 @@ router.post('/login', async (req, res) => {
     }
 
     const user = result.rows[0];
-    // Some seed scripts may store a trailing newline in the password hash
-    // which would cause bcrypt comparison to fail. Trim just in case.
+    // Sanitize values in case seed data contains trailing whitespace
     if (user.password_hash) {
       user.password_hash = user.password_hash.trim();
+    }
+    if (user.role) {
+      user.role = user.role.trim();
     }
     console.log('Comparing password for', user.email, 'hash', user.password_hash);
 

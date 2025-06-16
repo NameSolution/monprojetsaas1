@@ -26,11 +26,12 @@ const LoginPage = () => {
 
     const { success, user, error } = await login(trimmedEmail, trimmedPassword);
         if (success && user) {
-          if (user.role === 'superadmin') {
+          const role = user.role ? user.role.trim() : '';
+          if (role === 'superadmin') {
             navigate('/superadmin');
-          } else if (['admin', 'manager'].includes(user.role) && user.hotel_id) {
+          } else if (['admin', 'manager'].includes(role) && user.hotel_id) {
             navigate('/client');
-          } else if (['admin', 'manager'].includes(user.role) && !user.hotel_id) {
+          } else if (['admin', 'manager'].includes(role) && !user.hotel_id) {
             toast({variant: "destructive", title: "Configuration Requise (Simulée)", description: "Votre compte administrateur n'est lié à aucun hôtel. Contactez le Superadmin."});
             navigate('/login');
           } else {
