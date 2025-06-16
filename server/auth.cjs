@@ -96,6 +96,19 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
+    // Reload profile details if missing (legacy seeds may not join correctly)
+    if (!user.role || !user.name) {
+      const profRes = await db.query(
+        'SELECT name, role, hotel_id FROM profiles WHERE user_id = $1',
+        [user.id]
+      );
+      if (profRes.rows.length > 0) {
+        user.name = profRes.rows[0].name;
+        user.role = profRes.rows[0].role;
+        user.hotel_id = profRes.rows[0].hotel_id;
+      }
+    }
+
     // Create JWT token
     const token = jwt.sign(
       { id: user.id, role: user.role },

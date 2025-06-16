@@ -186,8 +186,8 @@ const ChatbotInterface = () => {
             style={{ backgroundColor: hotelConfig.primaryColor, borderTopLeftRadius: 'calc(var(--radius) - 1px)', borderTopRightRadius: 'calc(var(--radius) - 1px)' }}
         >
           <div className="flex items-center space-x-3">
-            {hotelConfig.logoUrl ? 
-                <img-replace src={hotelConfig.logoUrl} alt="Logo" className="w-10 h-10 rounded-full object-cover border-2 border-white/50" />
+            {hotelConfig.logoUrl ?
+                <img src={hotelConfig.logoUrl} alt="Logo" className="w-10 h-10 rounded-full object-cover border-2 border-white/50" />
                 : <Bot className="w-8 h-8 text-primary-foreground" />
             }
             <div>
@@ -234,8 +234,8 @@ const ChatbotInterface = () => {
                 className={`flex items-end gap-2 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {message.type === 'bot' && (
-                     hotelConfig.logoUrl ? 
-                     <img-replace src={hotelConfig.logoUrl} alt="Bot" className="w-8 h-8 rounded-full object-cover flex-shrink-0" /> 
+                     hotelConfig.logoUrl ?
+                     <img src={hotelConfig.logoUrl} alt="Bot" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                      : <Bot className="w-8 h-8 text-muted-foreground flex-shrink-0" />
                 )}
                 <div
@@ -273,8 +273,8 @@ const ChatbotInterface = () => {
               animate={{ opacity: 1 }}
               className="flex items-end gap-2 justify-start"
             >
-               {hotelConfig.logoUrl ? 
-                <img-replace src={hotelConfig.logoUrl} alt="Bot Typing" className="w-8 h-8 rounded-full object-cover flex-shrink-0" /> 
+               {hotelConfig.logoUrl ?
+                <img src={hotelConfig.logoUrl} alt="Bot Typing" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                 : <Bot className="w-8 h-8 text-muted-foreground flex-shrink-0" />}
               <div className="message-bot rounded-bl-none p-3">
                 <div className="loading-dots text-muted-foreground">
