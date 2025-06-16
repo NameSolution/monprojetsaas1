@@ -81,7 +81,7 @@ class ApiService {
 
   // Analytics methods
   async getAnalytics() {
-    return this.request('/analytics');
+    return this.request('/analytics/overview');
   }
 
   // Support methods

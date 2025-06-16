@@ -89,7 +89,9 @@ Interface utilisateur finale avec laquelle les clients de l'hôtel interagissent
     ```bash
     npm run dev
     ```
-L'application sera accessible à `http://localhost:5173`.
+    Les requêtes commençant par `/api` seront automatiquement
+    proxyfées vers le backend Express sur le port `5000`.
+    L'application sera accessible à `http://localhost:5173`.
 
 ### Comptes de Test (Simulés)
 Utilisez les identifiants suivants sur la page de connexion :
@@ -215,6 +217,8 @@ node server/seed.cjs
 npm run build
 npm start
 ```
+Pensez à relancer `npm run build` après toute modification du code React
+avant de démarrer le serveur en production.
 
 ## 📋 Comptes de test
 - **Super Admin** : `pass@passhoteltest.com` / `pass`
