@@ -186,9 +186,13 @@ Voici un aperçu des tables principales que votre backend et votre base de donn�
     -   `created_at` (TIMESTAMPTZ).
     -   `updated_at` (TIMESTAMPTZ).
 
-9.  **`settings`** (Paramètre# HotelBot AI SaaS - Plateforme de Chatbot pour Hôtels
-
-Plateforme complète de chatbot IA pour hôtels avec dashboard d'administration.
+9.  **`settings`**
+    - `id` (UUID, Primary Key)
+    - `tenant_id` (INT)
+    - `key` (TEXT, Unique)
+    - `value` (TEXT)
+    - `created_at` (TIMESTAMPTZ)
+    - `updated_at` (TIMESTAMPTZ)
 
 ## 🚀 Installation Rapide
 
