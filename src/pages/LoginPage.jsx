@@ -32,10 +32,18 @@ const LoginPage = () => {
         } else if (['admin', 'manager'].includes(role) && user.hotel_id) {
           navigate('/client');
         } else if (['admin', 'manager'].includes(role) && !user.hotel_id) {
-          toast({variant: "destructive", title: "Configuration Requise (Simulée)", description: "Votre compte administrateur n'est lié à aucun hôtel. Contactez le Superadmin."});
+          toast({
+            variant: 'destructive',
+            title: 'Configuration Requise',
+            description: "Votre compte administrateur n'est lié à aucun hôtel. Contactez le Superadmin."
+          });
           navigate('/login');
         } else {
-          toast({variant: "destructive", title: "Accès non configuré (Simulé)", description: "Votre rôle ou hôtel n'est pas correctement configuré."});
+          toast({
+            variant: 'destructive',
+            title: 'Accès non configuré',
+            description: "Votre rôle ou hôtel n'est pas correctement configuré."
+          });
           navigate('/login');
         }
       } else if (!success) {
