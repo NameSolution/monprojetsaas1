@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,8 +15,19 @@ const LoginPage = () => {
     email: '',
     password: '',
   });
-  const { login, loading, resetPassword } = useAuth();
+  const { login, loading, resetPassword, user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      const role = user.role ? user.role.trim() : '';
+      if (role === 'superadmin') {
+        navigate('/superadmin');
+      } else if (['admin', 'manager'].includes(role) && user.hotel_id) {
+        navigate('/client');
+      }
+    }
+  }, [user, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
