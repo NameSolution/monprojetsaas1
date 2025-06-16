@@ -64,6 +64,11 @@ router.post('/login', async (req, res) => {
     }
 
     const user = result.rows[0];
+    // Some seed scripts may store a trailing newline in the password hash
+    // which would cause bcrypt comparison to fail. Trim just in case.
+    if (user.password_hash) {
+      user.password_hash = user.password_hash.trim();
+    }
     console.log('Comparing password for', user.email, 'hash', user.password_hash);
 
     // Ensure password hash exists before comparing

@@ -21,7 +21,10 @@ const LoginPage = () => {
     const handleLogin = async (e) => {
       e.preventDefault();
       try {
-        const { success, user, error } = await login(formData.email, formData.password);
+    const trimmedEmail = formData.email.trim();
+    const trimmedPassword = formData.password.trim();
+
+    const { success, user, error } = await login(trimmedEmail, trimmedPassword);
         if (success && user) {
           if (user.role === 'superadmin') {
             navigate('/superadmin');
