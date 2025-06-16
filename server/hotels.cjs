@@ -50,6 +50,9 @@ router.get('/my-hotel', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, description, logo_url, default_lang_code } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Hotel name is required' });
+    }
     const result = await db.query(
       `INSERT INTO hotels (name, description, logo_url, default_lang_code)
        VALUES ($1, $2, $3, $4)
@@ -101,7 +104,11 @@ router.delete('/:id', async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
+    // Clear references from profiles before deleting the hotel
+    await db.query('UPDATE profiles SET hotel_id = NULL WHERE hotel_id = $1', [id]);
+    await db.query('DELETE FROM hotel_languages WHERE hotel_id = $1', [id]);
     await db.query('DELETE FROM hotels WHERE id = $1', [id]);
+
     res.json({ success: true });
   } catch (err) {
     console.error(err);

@@ -121,6 +121,17 @@ export const useClientData = () => {
     }
   };
 
+  const updateSlug = async (newSlug) => {
+    if (!hotelId) return null;
+    try {
+      const updated = await apiService.updateHotel(hotelId, { slug: newSlug });
+      setProfile(prev => ({ ...prev, slug: updated.slug }));
+      return updated;
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const createSupportTicket = async (ticketData) => {
     try {
       const newTicket = await apiService.createSupportTicket({
@@ -134,15 +145,28 @@ export const useClientData = () => {
     }
   };
 
-  // Temporary placeholders for knowledge base management
-  const updateKnowledgeBase = async () => {
-    console.warn('updateKnowledgeBase not implemented');
-    return null;
+  // Basic local knowledge base management for now
+  const updateKnowledgeBase = async (item) => {
+    if (!item) return null;
+    setKnowledgeBase((prev) => {
+      if (item.id) {
+        return prev.map((it) => (it.id === item.id ? { ...it, ...item } : it));
+      }
+      const id = typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+          );
+      const newItem = { ...item, id };
+      return [...prev, newItem];
+    });
+    return item;
   };
 
-  const deleteKnowledgeItem = async () => {
-    console.warn('deleteKnowledgeItem not implemented');
-    return null;
+  const deleteKnowledgeItem = async (id) => {
+    if (!id) return null;
+    setKnowledgeBase((prev) => prev.filter((it) => it.id !== id));
+    return id;
   };
 
   return {
@@ -158,6 +182,7 @@ export const useClientData = () => {
     updateProfile,
     updateCustomization,
     updateHotelLanguages,
+    updateSlug,
     createSupportTicket,
     updateKnowledgeBase,
     deleteKnowledgeItem,

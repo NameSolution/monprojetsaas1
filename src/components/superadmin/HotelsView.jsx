@@ -28,24 +28,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import apiService from '@/services/api';
 
 
 const HotelsView = () => {
     const { data: initialHotels, loading, addHotel, updateHotel, deleteHotel } = useSuperAdminData('hotels');
     const [hotels, setHotels] = useState([]);
-    const [plans, setPlans] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingHotel, setEditingHotel] = useState(null);
-    const [currentHotelData, setCurrentHotelData] = useState({ name: '', plan_id: '', status: 'active'});
+    const [currentHotelData, setCurrentHotelData] = useState({ name: '', default_lang_code: 'en' });
     const [hotelToDelete, setHotelToDelete] = useState(null);
 
     useEffect(() => {
@@ -54,16 +45,7 @@ const HotelsView = () => {
         }
     }, [initialHotels, loading]);
 
-    useEffect(() => {
-        const loadPlans = async () => {
-            const fetchedPlans = await apiService.getPlans();
-            setPlans(fetchedPlans);
-            if (fetchedPlans.length > 0 && !currentHotelData.plan_id) {
-                setCurrentHotelData(prev => ({ ...prev, plan_id: fetchedPlans[0].id }));
-            }
-        };
-        loadPlans();
-    }, []);
+    // No plan management in the simplified schema
 
     const filteredHotels = hotels?.filter(hotel => 
         hotel.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -71,14 +53,16 @@ const HotelsView = () => {
 
     const handleAddHotel = () => {
         setEditingHotel(null);
-        setCurrentHotelData({ name: '', plan_id: plans[0]?.id || '', status: 'active' });
+        setCurrentHotelData({ name: '', default_lang_code: 'en' });
         setIsModalOpen(true);
     };
 
     const handleEditHotel = (hotel) => {
         setEditingHotel(hotel);
-        const plan = plans.find(p => p.name === hotel.plan);
-        setCurrentHotelData({ name: hotel.name, plan_id: plan?.id || '', status: hotel.status });
+        setCurrentHotelData({
+            name: hotel.name,
+            default_lang_code: hotel.default_lang_code || 'en'
+        });
         setIsModalOpen(true);
     };
 
@@ -93,29 +77,27 @@ const HotelsView = () => {
             toast({ variant: "destructive", title: "Nom requis", description: "Veuillez entrer un nom pour l'hôtel." });
             return;
         }
-        if (!currentHotelData.plan_id) {
-            toast({ variant: "destructive", title: "Plan requis", description: "Veuillez sélectionner un plan pour l'hôtel." });
-            return;
-        }
-
         const dataToSave = {
             name: currentHotelData.name,
-            plan_id: currentHotelData.plan_id,
-            status: currentHotelData.status,
+            default_lang_code: currentHotelData.default_lang_code || 'en'
         };
 
-        if (editingHotel) {
-            await updateHotel(editingHotel.id, dataToSave);
-        } else {
-            await addHotel(dataToSave);
+        try {
+            if (editingHotel) {
+                await updateHotel(editingHotel.id, dataToSave);
+            } else {
+                await addHotel(dataToSave);
+            }
+            setIsModalOpen(false);
+        } catch (err) {
+            toast({ variant: 'destructive', title: 'Erreur', description: err.message });
         }
-        setIsModalOpen(false);
     };
 
     const handleViewHotelDetails = (hotel) => {
         toast({
             title: `Détails de l'hôtel: ${hotel.name}`,
-            description: `🚧 Plan: ${hotel.plan}, Statut: ${hotel.status}, Utilisateurs: ${hotel.users}. Fonctionnalité d'affichage complet à venir ! 🚀`,
+            description: `🚧 Fonctionnalité d'affichage complet à venir ! 🚀`,
         });
     };
     
@@ -134,7 +116,7 @@ const HotelsView = () => {
                         <h2 className="text-xl font-bold text-foreground">Gestion des Hôtels</h2>
                         <p className="text-muted-foreground">Ajoutez, modifiez ou suspendez des comptes hôtels.</p>
                     </div>
-                    <Button className="gradient-bg" onClick={handleAddHotel} disabled={loading || plans.length === 0}>
+                    <Button className="gradient-bg" onClick={handleAddHotel} disabled={loading}>
                         <Plus className="w-4 h-4 mr-2" />
                         Ajouter un Hôtel
                     </Button>
@@ -158,10 +140,6 @@ const HotelsView = () => {
                         <thead>
                         <tr className="border-b border-border">
                             <th className="text-left text-muted-foreground font-medium py-3 px-2">Nom de l'hôtel</th>
-                            <th className="text-left text-muted-foreground font-medium py-3 px-2">Plan</th>
-                            <th className="text-left text-muted-foreground font-medium py-3 px-2">Statut</th>
-                            <th className="text-left text-muted-foreground font-medium py-3 px-2">Utilisateurs</th>
-                            <th className="text-left text-muted-foreground font-medium py-3 px-2">Date d'ajout</th>
                             <th className="text-left text-muted-foreground font-medium py-3 px-2">Actions</th>
                         </tr>
                         </thead>
@@ -170,10 +148,6 @@ const HotelsView = () => {
                             Array.from({ length: 5 }).map((_, i) => (
                                 <tr key={i} className="border-b border-border/50">
                                     <td className="py-4 px-2"><Skeleton className="h-6 w-3/4" /></td>
-                                    <td className="py-4 px-2"><Skeleton className="h-6 w-1/2" /></td>
-                                    <td className="py-4 px-2"><Skeleton className="h-6 w-1/2" /></td>
-                                    <td className="py-4 px-2"><Skeleton className="h-6 w-1/4" /></td>
-                                    <td className="py-4 px-2"><Skeleton className="h-6 w-1/2" /></td>
                                     <td className="py-4 px-2"><Skeleton className="h-8 w-24" /></td>
                                 </tr>
                             ))
@@ -181,12 +155,6 @@ const HotelsView = () => {
                             filteredHotels.map((hotel) => (
                                 <tr key={hotel.id} className="border-b border-border/50 hover:bg-secondary/50">
                                 <td className="py-4 px-2 text-foreground">{hotel.name}</td>
-                                <td className="py-4 px-2 text-muted-foreground">{hotel.plan || 'N/A'}</td>
-                                <td className="py-4 px-2">
-                                    <span className={`px-2 py-1 rounded-full text-xs ${hotel.status === 'active' ? 'bg-green-500/20 text-green-600' : 'bg-destructive/20 text-destructive'}`}>{hotel.status === 'active' ? 'Actif' : 'Suspendu'}</span>
-                                </td>
-                                <td className="py-4 px-2 text-muted-foreground">{hotel.users}</td>
-                                <td className="py-4 px-2 text-muted-foreground">{new Date(hotel.created).toLocaleDateString()}</td>
                                 <td className="py-4 px-2">
                                     <div className="flex space-x-2">
                                     <Button variant="outline" size="icon" onClick={() => handleViewHotelDetails(hotel)}><Eye className="w-4 h-4" /></Button>
@@ -235,32 +203,6 @@ const HotelsView = () => {
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="hotel-name" className="text-right text-foreground">Nom</Label>
                             <Input id="hotel-name" value={currentHotelData.name} onChange={(e) => setCurrentHotelData({...currentHotelData, name: e.target.value})} className="col-span-3 bg-secondary border-border text-foreground" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="hotel-plan" className="text-right text-foreground">Plan</Label>
-                            <Select value={currentHotelData.plan_id} onValueChange={(value) => setCurrentHotelData({...currentHotelData, plan_id: value})}>
-                                <SelectTrigger className="col-span-3 bg-secondary border-border text-foreground">
-                                    <SelectValue placeholder="Choisir un plan" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {plans.map(plan => (
-                                        <SelectItem key={plan.id} value={plan.id}>{plan.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="hotel-status" className="text-right text-foreground">Statut</Label>
-                             <Select value={currentHotelData.status} onValueChange={(value) => setCurrentHotelData({...currentHotelData, status: value})}>
-                                <SelectTrigger className="col-span-3 bg-secondary border-border text-foreground">
-                                    <SelectValue placeholder="Choisir un statut" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="active">Actif</SelectItem>
-                                    <SelectItem value="suspended">Suspendu</SelectItem>
-                                    <SelectItem value="pending">En attente</SelectItem>
-                                </SelectContent>
-                            </Select>
                         </div>
                     </div>
                     <DialogFooter>

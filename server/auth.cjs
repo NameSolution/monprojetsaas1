@@ -9,7 +9,7 @@ const router = express.Router();
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, role, hotel_id } = req.body;
     
     // Check if user exists
     const userExists = await db.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -23,21 +23,30 @@ router.post('/register', async (req, res) => {
 
     // Create user
     const result = await db.query(
-      'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name',
-      [email, hashedPassword, name]
+      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email',
+      [email, hashedPassword]
     );
 
-    // Create JWT token
+    await db.query(
+      'INSERT INTO profiles (user_id, name, role, hotel_id) VALUES ($1, $2, $3, $4)',
+      [result.rows[0].id, name || '', role || 'client', hotel_id || null]
+    );
+
+    const userObj = {
+      id: result.rows[0].id,
+      email,
+      name: name || '',
+      role: role || 'client',
+      hotel_id: hotel_id || null
+    };
+
     const token = jwt.sign(
-      { id: result.rows[0].id },
+      { id: userObj.id, role: userObj.role },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
 
-    res.json({
-      token,
-      user: result.rows[0]
-    });
+    res.json({ token, user: userObj });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
