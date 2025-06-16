@@ -49,10 +49,10 @@ const ChatbotInterface = () => {
         }
         setLoadingConfig(true);
         const config = await fetchHotelConfigBySlug(slug);
-        
+
         if (!config || !config.id) {
-            console.error("Error fetching hotel config or hotel not found (simulated)");
-            toast({variant: "destructive", title: "Erreur", description: "Configuration du chatbot introuvable (simulé)."});
+            console.error("Error fetching hotel config or hotel not found");
+            toast({variant: "destructive", title: "Erreur", description: "Configuration du chatbot introuvable."});
             setHotelConfig(prev => ({...prev, id: null, name: "Chatbot Indisponible", welcomeMessage: "Ce chatbot n'est pas configuré."}));
         } else {
             const defaultLang = availableLanguages.find(l => l.code === config.defaultLanguage) || availableLanguages[0];
@@ -116,8 +116,8 @@ const ChatbotInterface = () => {
       }
 
     } catch (error) {
-        console.error("Error sending message or getting LLM response (simulated):", error);
-        toast({ variant: "destructive", title: "Erreur de communication (Simulée)", description: error.message });
+        console.error("Error sending message or getting LLM response:", error);
+        toast({ variant: "destructive", title: "Erreur de communication", description: error.message });
         const botErrorResponse = { type: 'bot', text: "Oups, une erreur est survenue. Veuillez réessayer.", id: `bot-error-${Date.now()}` };
         setMessages(prev => [...prev, botErrorResponse]);
     } finally {
@@ -129,11 +129,11 @@ const ChatbotInterface = () => {
       if (!interactionId) return;
       try {
           await submitInteractionRating(interactionId, ratingValue);
-          toast({ title: "Merci !", description: "Votre avis a été enregistré (simulé)."});
+          toast({ title: "Merci !", description: "Votre avis a été enregistré."});
           setInteractionToRate(null); 
       } catch (error) {
-          console.error("Error submitting rating (simulated):", error);
-          toast({variant: "destructive", title: "Erreur", description: "Impossible d'enregistrer votre avis (simulé)."});
+          console.error("Error submitting rating:", error);
+          toast({variant: "destructive", title: "Erreur", description: "Impossible d'enregistrer votre avis."});
       }
   };
 

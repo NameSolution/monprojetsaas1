@@ -173,7 +173,7 @@ const LoginPage = () => {
             <a 
               href="#" 
               className="text-primary hover:text-primary/80 transition-colors pages-LoginPage__text-primary pages-LoginPage__hover-text-primary-80"
-              onClick={(e) => { e.preventDefault(); toast({ title: "Support (Simulé)", description: "La page de contact est en construction." })}}
+              onClick={(e) => { e.preventDefault(); toast({ title: "Support", description: "La page de contact est en construction." })}}
             >
               Contactez le support
             </a>

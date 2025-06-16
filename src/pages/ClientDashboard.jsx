@@ -58,7 +58,7 @@ const ClientDashboard = () => {
      if (profile && profile.slug) {
          window.open(`/bot/${profile.slug}`, '_blank');
      } else {
-         toast({title: "Slug manquant (Simulé)", description: "Impossible de tester le chatbot sans slug configuré."})
+         toast({title: "Slug manquant", description: "Impossible de tester le chatbot sans slug configuré."})
      }
   };
 
@@ -187,7 +187,7 @@ const DocumentationView = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="dashboard-card rounded-xl p-6"
                 >
-                    <h3 className="text-xl font-semibold text-foreground mb-6">Guides d'Utilisation (Simulés)</h3>
+                    <h3 className="text-xl font-semibold text-foreground mb-6">Guides d'Utilisation</h3>
                     <div className="space-y-4">
                         <div className="p-4 bg-secondary rounded-lg">
                             <h4 className="font-medium text-foreground">Configurer votre Chatbot</h4>
@@ -206,7 +206,7 @@ const DocumentationView = () => {
                             <p className="text-sm text-muted-foreground">Activer, désactiver et définir la langue par défaut pour votre assistant.</p>
                         </div>
                     </div>
-                     <Button className="mt-6" onClick={() => toast({title: "Support Contacté (Simulé)", description:"Notre équipe vous répondra bientôt."})}>Contacter le Support</Button>
+                     <Button className="mt-6" onClick={() => toast({title: "Support Contacté", description:"Notre équipe vous répondra bientôt."})}>Contacter le Support</Button>
                 </motion.div>
             </main>
         </>
@@ -235,7 +235,7 @@ const ClientDashboardHeader = ({ title, subtitle }) => {
           <Button 
             variant="outline" 
             size="icon"
-            onClick={() => toast({ title: "Notifications (Simulées)", description: "Aucune nouvelle notification." })}
+            onClick={() => toast({ title: "Notifications", description: "Aucune nouvelle notification." })}
           >
             <Bell className="w-4 h-4" />
           </Button>

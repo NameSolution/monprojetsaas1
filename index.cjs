@@ -7,6 +7,8 @@ const userRoutes = require('./server/users.cjs');
 const analyticsRoutes = require('./server/analytics.cjs');
 const supportRoutes = require('./server/support.cjs');
 const planRoutes = require('./server/plans.cjs');
+const languageRoutes = require('./server/languages.cjs');
+const chatbotRoutes = require('./server/chatbot.cjs');
 // Upload functionality will be integrated directly
 
 const authMiddleware = require('./server/authMiddleware.cjs');
@@ -35,6 +37,8 @@ app.use('/api/users', authMiddleware, userRoutes);
 app.use('/api/analytics', authMiddleware, analyticsRoutes);
 app.use('/api/support', authMiddleware, supportRoutes);
 app.use('/api/plans', authMiddleware, planRoutes);
+app.use('/api/languages', authMiddleware, languageRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 // Upload routes integrated directly
 
 // Health check endpoint

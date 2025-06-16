@@ -27,12 +27,15 @@ router.get('/', async (req, res) => {
 router.get('/my-hotel', async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT h.*, p.name as plan_name 
-      FROM hotels h 
+      SELECT h.*, p.name as plan_name,
+        COALESCE(json_agg(json_build_object('code', hl.lang_code, 'active', hl.is_active)) FILTER (WHERE hl.lang_code IS NOT NULL), '[]') AS languages
+      FROM hotels h
       LEFT JOIN subscription_plans p ON h.plan_id = p.id
+      LEFT JOIN hotel_languages hl ON hl.hotel_id = h.id
       WHERE h.user_id = $1 OR EXISTS (
         SELECT 1 FROM profiles pr WHERE pr.user_id = $1 AND pr.hotel_id = h.id
       )
+      GROUP BY h.id, p.name
     `, [req.user.id]);
 
     if (result.rows.length === 0) {
@@ -66,16 +69,18 @@ router.post('/', async (req, res) => {
 // Update hotel
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, theme_color, welcome_message, contact_name, contact_email, status } = req.body;
+  const { name, theme_color, welcome_message, contact_name, contact_email, status, logo_url, default_lang_code } = req.body;
 
   try {
     const result = await db.query(`
-      UPDATE hotels 
-      SET name = $1, theme_color = $2, welcome_message = $3, contact_name = $4, 
-          contact_email = $5, status = $6, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $7 AND (user_id = $8 OR $9 = 'superadmin')
+      UPDATE hotels
+      SET name = $1, theme_color = $2, welcome_message = $3, contact_name = $4,
+          contact_email = $5, status = $6, logo_url = COALESCE($7, logo_url),
+          default_lang_code = COALESCE($8, default_lang_code),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $9 AND (user_id = $10 OR $11 = 'superadmin')
       RETURNING *
-    `, [name, theme_color, welcome_message, contact_name, contact_email, status, id, req.user.id, req.user.role]);
+    `, [name, theme_color, welcome_message, contact_name, contact_email, status, logo_url, default_lang_code, id, req.user.id, req.user.role]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Hotel not found or access denied' });
