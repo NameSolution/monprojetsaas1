@@ -6,6 +6,7 @@ export const useClientData = () => {
   const [customization, setCustomization] = useState(null);
   const [analytics, setAnalytics] = useState({});
   const [supportTickets, setSupportTickets] = useState([]);
+  const [knowledgeBase, setKnowledgeBase] = useState([]);
   const [availableLanguages, setAvailableLanguages] = useState([]);
   const [hotelId, setHotelId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -133,10 +134,22 @@ export const useClientData = () => {
     }
   };
 
+  // Temporary placeholders for knowledge base management
+  const updateKnowledgeBase = async () => {
+    console.warn('updateKnowledgeBase not implemented');
+    return null;
+  };
+
+  const deleteKnowledgeItem = async () => {
+    console.warn('deleteKnowledgeItem not implemented');
+    return null;
+  };
+
   return {
     profile,
     customization,
     analytics,
+    knowledgeBase,
     supportTickets,
     availableLanguages,
     hotelId,
@@ -146,6 +159,8 @@ export const useClientData = () => {
     updateCustomization,
     updateHotelLanguages,
     createSupportTicket,
+    updateKnowledgeBase,
+    deleteKnowledgeItem,
     refetch: fetchData
   };
 };
