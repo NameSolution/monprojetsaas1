@@ -65,6 +65,10 @@ class ApiService {
     return this.request('/hotels');
   }
 
+  async getClients() {
+    return this.request('/clients');
+  }
+
   async getMyHotel() {
     return this.request('/hotels/my-hotel');
   }

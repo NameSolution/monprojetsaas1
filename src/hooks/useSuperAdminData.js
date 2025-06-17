@@ -3,6 +3,7 @@ import apiService from '../services/api';
 
 export const useSuperAdminData = (resource) => {
   const [hotels, setHotels] = useState([]);
+  const [clients, setClients] = useState([]);
   const [users, setUsers] = useState([]);
   const [plans, setPlans] = useState([]);
   const [supportTickets, setSupportTickets] = useState([]);
@@ -21,7 +22,8 @@ export const useSuperAdminData = (resource) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [hotelsData, usersData, plansData, ticketsData, analyticsData] = await Promise.all([
+      const [clientsData, hotelsData, usersData, plansData, ticketsData, analyticsData] = await Promise.all([
+        apiService.getClients(),
         apiService.getHotels(),
         apiService.getUsers(),
         apiService.getPlans(),
@@ -29,6 +31,7 @@ export const useSuperAdminData = (resource) => {
         apiService.getAnalytics()
       ]);
 
+      setClients(clientsData);
       setHotels(hotelsData);
       setUsers(usersData);
       setPlans(plansData);
@@ -128,6 +131,7 @@ export const useSuperAdminData = (resource) => {
   };
 
   const dataMap = {
+    clients,
     hotels,
     users,
     plans,
@@ -135,6 +139,7 @@ export const useSuperAdminData = (resource) => {
     analytics,
   };
   const setterMap = {
+    clients: setClients,
     hotels: setHotels,
     users: setUsers,
     plans: setPlans,
@@ -144,7 +149,7 @@ export const useSuperAdminData = (resource) => {
 
   return {
     data: dataMap[resource] || null,
-    allData: { hotels, users, plans, supportTickets, analytics },
+    allData: { clients, hotels, users, plans, supportTickets, analytics },
     loading,
     error,
     addHotel: createHotel,
