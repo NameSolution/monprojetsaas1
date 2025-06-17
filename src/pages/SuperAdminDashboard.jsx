@@ -16,8 +16,9 @@ import {
   BarChart3,
   CreditCard,
   Server,
-  Settings as SettingsIcon, 
-  LifeBuoy 
+  Settings as SettingsIcon,
+  LifeBuoy,
+  Menu
 } from 'lucide-react';
 
 const SuperAdminDashboardView = lazy(() => import('@/components/superadmin/SuperAdminDashboardView'));
@@ -39,8 +40,9 @@ const SuperAdminDashboard = () => {
   const navigate = useNavigate();
   const { user, logout, loading: authLoading } = useAuth();
   const { data: supportTicketsData, loading: ticketsLoading } = useSuperAdminData('supportTickets');
-  const [notifications, setNotifications] = useState(0); 
+  const [notifications, setNotifications] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!ticketsLoading && supportTicketsData) {
@@ -76,10 +78,18 @@ const SuperAdminDashboard = () => {
   };
 
   const Sidebar = () => (
-    <div className="w-64 sidebar-nav h-screen fixed left-0 top-0 p-6 flex flex-col">
-      <div className="flex items-center space-x-2 mb-8">
-        <Shield className="w-8 h-8 text-purple-500" />
-        <span className="text-xl font-bold gradient-text">Super Admin</span>
+    <div
+      className={`w-64 sidebar-nav h-screen fixed left-0 top-0 p-6 flex flex-col z-50 transform md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+    >
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center space-x-2">
+          <Shield className="w-8 h-8 text-purple-500" />
+          <span className="text-xl font-bold gradient-text">Super Admin</span>
+        </div>
+        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSidebarOpen(false)}>
+          <span className="sr-only">Fermer</span>
+          ✕
+        </Button>
       </div>
 
       <nav className="space-y-2 flex-grow">
@@ -167,11 +177,20 @@ const SuperAdminDashboard = () => {
   if (authLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><p className="text-foreground">Chargement du dashboard Super Admin...</p></div>;
   }
-  
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="ml-64">
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+      <button
+        className="md:hidden fixed top-4 left-4 z-50 bg-primary text-primary-foreground p-2 rounded-md"
+        onClick={() => setSidebarOpen(true)}
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+      <div className="md:ml-64">
         <Header />
         <main className="p-6">
            <AnimatePresence mode="wait">

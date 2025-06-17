@@ -136,6 +136,14 @@ body {
 .sidebar-nav {
   background-color: hsl(var(--secondary));
   border-right: 1px solid hsl(var(--border));
+  transition: transform 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .sidebar-nav {
+    width: 16rem;
+    transform: translateX(-100%);
+  }
 }
 
 .nav-item {

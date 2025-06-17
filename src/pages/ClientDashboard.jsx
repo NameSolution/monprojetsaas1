@@ -5,18 +5,19 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/lib/authContext';
 import { useClientData } from '@/hooks/useClientData';
-import { 
-  Bot, 
-  Palette, 
+import {
+  Bot,
+  Palette,
   BrainCircuit,
-  Settings, 
-  BarChart3, 
+  Settings,
+  BarChart3,
   QrCode,
   LogOut,
   TestTube,
   BookUser,
   LayoutDashboard,
   Bell,
+  Menu,
   Languages as LanguagesIcon,
   LifeBuoy
 } from 'lucide-react';
@@ -64,11 +65,21 @@ const ClientDashboard = () => {
      }
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const Sidebar = () => (
-    <div className="w-64 sidebar-nav h-screen fixed left-0 top-0 p-6 flex flex-col">
-      <div className="flex items-center space-x-2 mb-8">
-        <Bot className="w-8 h-8 text-primary" />
-        <span className="text-xl font-bold gradient-text">HotelBot</span>
+    <div
+      className={`w-64 sidebar-nav h-screen fixed left-0 top-0 p-6 flex flex-col z-50 transform md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+    >
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center space-x-2">
+          <Bot className="w-8 h-8 text-primary" />
+          <span className="text-xl font-bold gradient-text">HotelBot</span>
+        </div>
+        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSidebarOpen(false)}>
+          <span className="sr-only">Fermer</span>
+          ✕
+        </Button>
       </div>
 
       <nav className="space-y-2 flex-grow">
@@ -130,7 +141,16 @@ const ClientDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="ml-64">
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+      <button
+        className="md:hidden fixed top-4 left-4 z-50 bg-primary text-primary-foreground p-2 rounded-md"
+        onClick={() => setSidebarOpen(true)}
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+      <div className="md:ml-64">
         <AnimatePresence mode="wait">
           <Suspense fallback={<LoadingViewFallback />}>
             <Routes location={location} key={location.pathname}>
