@@ -4,6 +4,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('./db.cjs');
 
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable not set');
+}
+
 const router = express.Router();
 
 // Register
@@ -42,7 +46,7 @@ router.post('/register', async (req, res) => {
 
     const token = jwt.sign(
       { id: userObj.id, role: userObj.role },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -112,7 +116,7 @@ router.post('/login', async (req, res) => {
     // Create JWT token
     const token = jwt.sign(
       { id: user.id, role: user.role },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 

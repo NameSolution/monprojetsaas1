@@ -87,3 +87,13 @@ model Language {
   tenantId Int
   name String
 }
+
+model KnowledgeItem {
+  id        String   @id @default(uuid())
+  tenantId  Int
+  hotel     Hotel    @relation(fields: [hotelId], references: [id])
+  hotelId   String
+  info      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

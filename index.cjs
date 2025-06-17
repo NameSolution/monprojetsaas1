@@ -9,6 +9,7 @@ const supportRoutes = require('./server/support.cjs');
 const planRoutes = require('./server/plans.cjs');
 const languageRoutes = require('./server/languages.cjs');
 const chatbotRoutes = require('./server/chatbot.cjs');
+const knowledgeRoutes = require('./server/knowledge.cjs');
 // Upload functionality will be integrated directly
 
 const authMiddleware = require('./server/authMiddleware.cjs');
@@ -38,6 +39,7 @@ app.use('/api/analytics', authMiddleware, analyticsRoutes);
 app.use('/api/support', authMiddleware, supportRoutes);
 app.use('/api/plans', authMiddleware, planRoutes);
 app.use('/api/languages', authMiddleware, languageRoutes);
+app.use('/api/knowledge', authMiddleware, knowledgeRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 // Upload routes integrated directly
 

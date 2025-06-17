@@ -36,27 +36,17 @@ const LoginPage = () => {
       const trimmedPassword = formData.password.trim();
 
       const { success, user, error } = await login(trimmedEmail, trimmedPassword);
+
       if (success && user) {
         const role = user.role ? user.role.trim() : '';
-        if (role === 'superadmin') {
-          navigate('/superadmin');
-        } else if (['admin', 'manager'].includes(role) && user.hotel_id) {
-          navigate('/client');
-        } else if (['admin', 'manager'].includes(role) && !user.hotel_id) {
+        if (['admin', 'manager'].includes(role) && !user.hotel_id) {
           toast({
             variant: 'destructive',
             title: 'Configuration Requise',
             description: "Votre compte administrateur n'est lié à aucun hôtel. Contactez le Superadmin."
           });
-          navigate('/login');
-        } else {
-          toast({
-            variant: 'destructive',
-            title: 'Accès non configuré',
-            description: "Votre rôle ou hôtel n'est pas correctement configuré."
-          });
-          navigate('/login');
         }
+        // Navigation will occur via the effect listening to `user`
       } else if (!success) {
         toast({ variant: "destructive", title: "Erreur de connexion", description: error || "Identifiants invalides" });
       }

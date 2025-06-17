@@ -34,11 +34,18 @@ export const useClientData = () => {
           console.error('getSupportTickets failed:', err);
           return [];
         });
+      const knowledgePromise = apiService
+        .getKnowledgeItems()
+        .catch((err) => {
+          console.error('getKnowledgeItems failed:', err);
+          return [];
+        });
 
-      const [hotelData, analyticsData, ticketsData] = await Promise.all([
+      const [hotelData, analyticsData, ticketsData, knowledgeData] = await Promise.all([
         hotelPromise,
         analyticsPromise,
         ticketsPromise,
+        knowledgePromise,
       ]);
 
       if (hotelData) {
@@ -64,6 +71,7 @@ export const useClientData = () => {
 
       setAnalytics(analyticsData || {});
       setSupportTickets(ticketsData || []);
+      setKnowledgeBase(knowledgeData || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -145,28 +153,37 @@ export const useClientData = () => {
     }
   };
 
-  // Basic local knowledge base management for now
   const updateKnowledgeBase = async (item) => {
     if (!item) return null;
-    setKnowledgeBase((prev) => {
+    try {
+      let saved;
       if (item.id) {
-        return prev.map((it) => (it.id === item.id ? { ...it, ...item } : it));
+        saved = await apiService.updateKnowledgeItem(item.id, { info: item.info });
+      } else {
+        saved = await apiService.createKnowledgeItem({ info: item.info });
       }
-      const id = typeof crypto.randomUUID === 'function'
-        ? crypto.randomUUID()
-        : ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-          );
-      const newItem = { ...item, id };
-      return [...prev, newItem];
-    });
-    return item;
+      setKnowledgeBase((prev) => {
+        const idx = prev.findIndex((k) => k.id === saved.id);
+        if (idx >= 0) {
+          return prev.map((k) => (k.id === saved.id ? saved : k));
+        }
+        return [...prev, saved];
+      });
+      return saved;
+    } catch (err) {
+      throw err;
+    }
   };
 
   const deleteKnowledgeItem = async (id) => {
     if (!id) return null;
-    setKnowledgeBase((prev) => prev.filter((it) => it.id !== id));
-    return id;
+    try {
+      await apiService.deleteKnowledgeItem(id);
+      setKnowledgeBase((prev) => prev.filter((it) => it.id !== id));
+      return id;
+    } catch (err) {
+      throw err;
+    }
   };
 
   return {

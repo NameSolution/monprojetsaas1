@@ -66,6 +66,15 @@ async function createTables() {
       CREATE TABLE IF NOT EXISTS public.users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id INT NOT NULL DEFAULT 1,
+
+      CREATE TABLE IF NOT EXISTS public.knowledge_items (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id INT NOT NULL DEFAULT 1,
+        hotel_id UUID REFERENCES public.hotels(id),
+        info TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -126,6 +135,30 @@ async function createTables() {
         status VARCHAR(50) DEFAULT 'open',
         priority VARCHAR(50) DEFAULT 'medium',
         user_id UUID REFERENCES public.users(id),
+    } else {
+      superAdminResult = existingSuperAdmin;
+      const prof = await db.query(
+        'SELECT id FROM public.profiles WHERE user_id = $1',
+        [existingSuperAdmin.rows[0].id]
+      );
+      if (prof.rows.length === 0) {
+        await db.query(
+          `INSERT INTO public.profiles (user_id, name, role) VALUES ($1, 'Super Admin', 'superadmin')`,
+          [existingSuperAdmin.rows[0].id]
+        );
+      }
+    } else {
+      hotelAdminResult = existingHotelAdmin;
+      const prof = await db.query(
+        'SELECT id FROM public.profiles WHERE user_id = $1',
+        [existingHotelAdmin.rows[0].id]
+      );
+      if (prof.rows.length === 0) {
+        await db.query(
+          `INSERT INTO public.profiles (user_id, name, role, hotel_id) VALUES ($1, 'Admin Demo', 'admin', '550e8400-e29b-41d4-a716-446655440000')`,
+          [existingHotelAdmin.rows[0].id]
+        );
+      }
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
@@ -154,6 +187,14 @@ async function createTables() {
       );
     `);
 
+
+      await db.query(`
+        INSERT INTO public.knowledge_items (hotel_id, info)
+        VALUES
+          ('550e8400-e29b-41d4-a716-446655440000', 'Le petit-d\'jeuner est servi de 7h \u00e0 10h.'),
+          ('550e8400-e29b-41d4-a716-446655440000', 'La piscine est ouverte de 8h \u00e0 20h.')
+        ON CONFLICT DO NOTHING;
+      `);
     // Conversations (ajoutée pour éviter crash dashboard)
     await db.query(`
       CREATE TABLE IF NOT EXISTS public.conversations (
