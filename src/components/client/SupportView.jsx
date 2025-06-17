@@ -11,7 +11,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useClientData } from '@/hooks/useClientData';
 
 const SupportView = () => {
-  const { createSupportTicket } = useClientData();
+  const { createSupportTicket, supportTickets } = useClientData();
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -74,6 +74,32 @@ const SupportView = () => {
             </div>
           </div>
         </motion.div>
+
+        {supportTickets && supportTickets.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="dashboard-card rounded-xl p-6 max-w-3xl mx-auto mt-8">
+            <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center"><LifeBuoy className="w-5 h-5 mr-2" />Vos Tickets</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="py-2 px-2 text-left text-muted-foreground">Sujet</th>
+                    <th className="py-2 px-2 text-left text-muted-foreground">Statut</th>
+                    <th className="py-2 px-2 text-left text-muted-foreground">Créé le</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {supportTickets.map(t => (
+                    <tr key={t.id} className="border-b border-border/50">
+                      <td className="py-2 px-2 text-foreground">{t.title}</td>
+                      <td className="py-2 px-2 text-muted-foreground capitalize">{t.status}</td>
+                      <td className="py-2 px-2 text-muted-foreground">{new Date(t.created_at).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
       </main>
     </>
   );
