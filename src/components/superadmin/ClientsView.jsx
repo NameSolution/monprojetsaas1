@@ -2,14 +2,16 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useSuperAdminData } from '@/hooks/useSuperAdminData';
 import { Skeleton } from '@/components/ui/skeleton';
+import HotelsView from './HotelsView';
+import UsersView from './UsersView';
 
 const ClientsView = () => {
   const { data: clients, loading } = useSuperAdminData('clients');
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-      <div className="dashboard-card rounded-xl p-6">
-        <h2 className="text-xl font-bold text-foreground mb-4">Clients</h2>
+      <div className="dashboard-card rounded-xl p-6 mb-8">
+        <h2 className="text-xl font-bold text-foreground mb-4">Aperçu Clients</h2>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -47,6 +49,9 @@ const ClientsView = () => {
           </table>
         </div>
       </div>
+      <HotelsView />
+      <div className="my-8" />
+      <UsersView />
     </motion.div>
   );
 };

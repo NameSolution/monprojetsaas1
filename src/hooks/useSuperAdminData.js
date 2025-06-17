@@ -7,6 +7,7 @@ export const useSuperAdminData = (resource) => {
   const [users, setUsers] = useState([]);
   const [plans, setPlans] = useState([]);
   const [supportTickets, setSupportTickets] = useState([]);
+  const [dashboard, setDashboard] = useState(null);
   const [analytics, setAnalytics] = useState({
     stats: {
       totalUsers: 0,
@@ -40,6 +41,18 @@ export const useSuperAdminData = (resource) => {
         stats: analyticsData.stats || {},
         conversationsData: analyticsData.conversationsData || [],
         plansData: analyticsData.plansData || []
+      });
+      setDashboard({
+        stats: analyticsData.stats || {},
+        revenueData: analyticsData.conversationsData || [],
+        recentHotels: hotelsData.slice(0, 4).map(h => ({
+          id: h.id,
+          name: h.name,
+          status: h.status || 'active',
+          users: usersData.filter(u => u.hotel_id === h.id).length,
+          conversations: 0
+        })),
+        systemAlerts: []
       });
     } catch (err) {
       setError(err.message);
@@ -137,6 +150,7 @@ export const useSuperAdminData = (resource) => {
     plans,
     supportTickets,
     analytics,
+    dashboard,
   };
   const setterMap = {
     clients: setClients,
@@ -145,11 +159,12 @@ export const useSuperAdminData = (resource) => {
     plans: setPlans,
     supportTickets: setSupportTickets,
     analytics: setAnalytics,
+    dashboard: setDashboard,
   };
 
   return {
     data: dataMap[resource] || null,
-    allData: { clients, hotels, users, plans, supportTickets, analytics },
+    allData: { clients, hotels, users, plans, supportTickets, analytics, dashboard },
     loading,
     error,
     addHotel: createHotel,
