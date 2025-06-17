@@ -52,7 +52,7 @@ const TicketStatusBadge = ({ status }) => {
 };
 
 const SupportTicketsView = () => {
-  const { data: tickets, loading, updateTicket, setData: setGlobalTickets } = useSuperAdminData('supportTickets');
+  const { data: tickets, loading, updateSupportTicket, setData: setGlobalTickets } = useSuperAdminData('supportTickets');
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTicketData, setCurrentTicketData] = useState({ status: '', internal_notes: '' });
@@ -71,7 +71,10 @@ const SupportTicketsView = () => {
     if (!selectedTicket) return;
     setIsUpdating(true);
     try {
-      await updateTicket(selectedTicket.id, { status: currentTicketData.status, internal_notes: currentTicketData.internal_notes });
+      await updateSupportTicket(selectedTicket.id, {
+        status: currentTicketData.status,
+        internal_notes: currentTicketData.internal_notes,
+      });
       setIsModalOpen(false);
     } catch (err) {
       toast({ variant: 'destructive', title: 'Erreur mise à jour', description: err.message });
@@ -134,7 +137,7 @@ const SupportTicketsView = () => {
                     <td className="py-4 px-2 text-foreground font-medium">{ticket.title}</td>
                     <td className="py-4 px-2 text-muted-foreground">{ticket.submitter_name || 'N/A'}</td>
                     <td className="py-4 px-2 text-muted-foreground">{ticket.submitter_email}</td>
-                    <td className="py-4 px-2 text-muted-foreground">{ticket.hotels?.name || 'N/A'}</td>
+                    <td className="py-4 px-2 text-muted-foreground">{ticket.hotel_name || 'N/A'}</td>
                     <td className="py-4 px-2"><TicketStatusBadge status={ticket.status} /></td>
                     <td className="py-4 px-2 text-muted-foreground">{new Date(ticket.created_at).toLocaleDateString()}</td>
                     <td className="py-4 px-2">
@@ -181,7 +184,7 @@ const SupportTicketsView = () => {
                     <DialogDescription className="text-muted-foreground">
                         Demandé par {selectedTicket.submitter_name} ({selectedTicket.submitter_email})
                         {selectedTicket.submitter_phone && ` - Tel: ${selectedTicket.submitter_phone}`}
-                        {selectedTicket.hotels?.name && ` - Hôtel: ${selectedTicket.hotels.name}`}
+                        {selectedTicket.hotel_name && ` - Hôtel: ${selectedTicket.hotel_name}`}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4 space-y-4">

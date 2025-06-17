@@ -14,8 +14,7 @@ const SupportView = () => {
   const { createSupportTicket, supportTickets } = useClientData();
   const [form, setForm] = useState({
     title: '',
-    description: '',
-    priority: 'medium'
+    description: ''
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -32,7 +31,7 @@ const SupportView = () => {
     try {
       await createSupportTicket(form);
       toast({ title: 'Ticket envoyé', description: "Nous reviendrons vers vous bientôt." });
-      setForm({ title: '', description: '', priority: 'medium' });
+      setForm({ title: '', description: '' });
     } catch (err) {
       toast({ variant: 'destructive', title: 'Erreur', description: err.message });
     } finally {
@@ -53,19 +52,6 @@ const SupportView = () => {
             <div>
               <Label htmlFor="description" className="text-foreground">Description</Label>
               <Textarea id="description" rows={4} className="mt-2 bg-background border-border text-foreground" value={form.description} onChange={handleChange} />
-            </div>
-            <div>
-              <Label htmlFor="priority" className="text-foreground">Priorité</Label>
-              <Select value={form.priority} onValueChange={(value) => setForm(prev => ({ ...prev, priority: value }))}>
-                <SelectTrigger id="priority" className="mt-2 bg-background border-border text-foreground">
-                  <SelectValue placeholder="Choisir une priorité" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Faible</SelectItem>
-                  <SelectItem value="medium">Moyenne</SelectItem>
-                  <SelectItem value="high">Haute</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div className="flex justify-end">
               <Button onClick={handleSubmit} disabled={submitting}>

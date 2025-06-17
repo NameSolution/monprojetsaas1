@@ -73,6 +73,10 @@ class ApiService {
     return this.request('/hotels/my-hotel');
   }
 
+  async getCustomization() {
+    return this.request('/customization');
+  }
+
   async createHotel(hotelData) {
     return this.request('/hotels', {
       method: 'POST',
@@ -84,6 +88,13 @@ class ApiService {
     return this.request(`/hotels/${id}`, {
       method: 'PUT',
       body: hotelData,
+    });
+  }
+
+  async updateCustomization(data) {
+    return this.request('/customization', {
+      method: 'PUT',
+      body: data,
     });
   }
 

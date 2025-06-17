@@ -87,6 +87,19 @@ async function createTables() {
         UNIQUE (hotel_id, lang_code)
       );
 
+      CREATE TABLE IF NOT EXISTS public.hotel_customizations (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id INT NOT NULL DEFAULT 1,
+        hotel_id UUID UNIQUE REFERENCES public.hotels(id),
+        name TEXT,
+        welcome_message TEXT,
+        theme_color TEXT,
+        logo_url TEXT,
+        default_language TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS public.support_tickets (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id INT NOT NULL DEFAULT 1,
@@ -218,6 +231,19 @@ async function seedDatabase() {
         'active'
       )
       ON CONFLICT (id) DO NOTHING;
+    `);
+
+    await db.query(`
+      INSERT INTO public.hotel_customizations (hotel_id, name, welcome_message, theme_color, logo_url, default_language)
+      VALUES (
+        '550e8400-e29b-41d4-a716-446655440000',
+        'Assistant Virtuel',
+        'Bienvenue au Demo Hotel',
+        '#2563EB',
+        NULL,
+        'fr'
+      )
+      ON CONFLICT (hotel_id) DO NOTHING;
     `);
 
     await db.query(`
