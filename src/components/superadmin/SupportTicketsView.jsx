@@ -59,11 +59,13 @@ const SupportTicketsView = () => {
   const [ticketToDelete, setTicketToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [responseMessage, setResponseMessage] = useState('');
 
 
   const handleViewTicket = (ticket) => {
     setSelectedTicket(ticket);
     setCurrentTicketData({ status: ticket.status, internal_notes: ticket.internal_notes || '' });
+    setResponseMessage(ticket.admin_response || '');
     setIsModalOpen(true);
   };
 
@@ -80,6 +82,17 @@ const SupportTicketsView = () => {
       toast({ variant: 'destructive', title: 'Erreur mise à jour', description: err.message });
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleSendResponse = async () => {
+    if (!selectedTicket) return;
+    try {
+      await apiService.replySupportTicket(selectedTicket.id, responseMessage);
+      setGlobalTickets(prev => prev.map(t => t.id === selectedTicket.id ? { ...t, admin_response: responseMessage } : t));
+      toast({ title: 'Réponse envoyée' });
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Erreur', description: err.message });
     }
   };
   
@@ -211,12 +224,22 @@ const SupportTicketsView = () => {
                     </div>
                     <div>
                         <Label htmlFor="internal-notes" className="text-foreground">Notes internes (optionnel):</Label>
-                        <Textarea 
-                            id="internal-notes" 
+                        <Textarea
+                            id="internal-notes"
                             value={currentTicketData.internal_notes || ''}
                             onChange={(e) => setCurrentTicketData(prev => ({...prev, internal_notes: e.target.value}))}
                             className="bg-secondary border-border text-foreground"
                             placeholder="Ajoutez des notes ici..."
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="response" className="text-foreground">Réponse au client:</Label>
+                        <Textarea
+                            id="response"
+                            value={responseMessage}
+                            onChange={(e) => setResponseMessage(e.target.value)}
+                            className="bg-secondary border-border text-foreground"
+                            placeholder="Votre message de réponse..."
                         />
                     </div>
                 </div>
@@ -224,6 +247,9 @@ const SupportTicketsView = () => {
                     <DialogClose asChild>
                         <Button variant="outline">Annuler</Button>
                     </DialogClose>
+                    <Button variant="secondary" onClick={handleSendResponse} disabled={!responseMessage.trim()}>
+                        Envoyer la réponse
+                    </Button>
                     <Button onClick={handleUpdateTicket} className="gradient-bg" disabled={isUpdating}>
                         <Save className="w-4 h-4 mr-2" />
                         {isUpdating ? "Sauvegarde..." : "Sauvegarder"}

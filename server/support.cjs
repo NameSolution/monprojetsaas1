@@ -82,6 +82,21 @@ router.put('/tickets/:id', async (req, res) => {
   }
 });
 
+// Reply to a support ticket
+router.post('/tickets/:id/reply', async (req, res) => {
+  try {
+    const { message } = req.body;
+    const result = await db.query(
+      `UPDATE support_tickets SET admin_response = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+      [message, req.params.id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Delete support ticket (superadmin only)
 router.delete('/tickets/:id', async (req, res) => {
   try {

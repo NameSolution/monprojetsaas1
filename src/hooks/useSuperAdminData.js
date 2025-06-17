@@ -143,6 +143,33 @@ export const useSuperAdminData = (resource) => {
     }
   };
 
+  const replySupportTicket = async (id, message) => {
+    try {
+      const updated = await apiService.replySupportTicket(id, message);
+      setSupportTickets(prev => prev.map(t => t.id === id ? { ...t, admin_response: message } : t));
+      return updated;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const fetchAISettings = async () => {
+    try {
+      const settings = await apiService.getAISettings();
+      return settings;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const saveAISettings = async (data) => {
+    try {
+      return await apiService.updateAISettings(data);
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const dataMap = {
     clients,
     hotels,
@@ -175,6 +202,9 @@ export const useSuperAdminData = (resource) => {
     deleteUser,
     createSupportTicket,
     updateSupportTicket,
+    replySupportTicket,
+    fetchAISettings,
+    saveAISettings,
     refetch: fetchData,
     setData: setterMap[resource],
   };

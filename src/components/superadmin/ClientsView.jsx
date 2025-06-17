@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSuperAdminData } from '@/hooks/useSuperAdminData';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import HotelsView from './HotelsView';
 import UsersView from './UsersView';
 
@@ -54,20 +55,20 @@ const ClientsView = () => {
       </div>
       {showHotels ? (
         <div className="relative">
-          <button onClick={() => setShowHotels(false)} className="absolute right-4 top-4 text-muted-foreground">Fermer</button>
+          <Button size="sm" variant="secondary" onClick={() => setShowHotels(false)} className="absolute right-4 -top-3">Fermer</Button>
           <HotelsView />
         </div>
       ) : (
-        <button className="mb-4 underline" onClick={() => setShowHotels(true)}>Ouvrir gestion des hôtels</button>
+        <Button variant="outline" onClick={() => setShowHotels(true)} className="mb-4">Gestion des hôtels</Button>
       )}
       <div className="my-8" />
       {showUsers ? (
         <div className="relative">
-          <button onClick={() => setShowUsers(false)} className="absolute right-4 top-4 text-muted-foreground">Fermer</button>
+          <Button size="sm" variant="secondary" onClick={() => setShowUsers(false)} className="absolute right-4 -top-3">Fermer</Button>
           <UsersView />
         </div>
       ) : (
-        <button className="mb-4 underline" onClick={() => setShowUsers(true)}>Ouvrir gestion des utilisateurs</button>
+        <Button variant="outline" onClick={() => setShowUsers(true)} className="mb-4">Gestion des utilisateurs</Button>
       )}
     </motion.div>
   );

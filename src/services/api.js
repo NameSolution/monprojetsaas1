@@ -98,6 +98,18 @@ class ApiService {
     });
   }
 
+  // Settings methods
+  async getAISettings() {
+    return this.request('/settings/ai');
+  }
+
+  async updateAISettings(data) {
+    return this.request('/settings/ai', {
+      method: 'PUT',
+      body: data,
+    });
+  }
+
   async deleteHotel(id) {
     return this.request(`/hotels/${id}`, {
       method: 'DELETE',
@@ -131,6 +143,13 @@ class ApiService {
   async deleteSupportTicket(id) {
     return this.request(`/support/tickets/${id}`, {
       method: 'DELETE'
+    });
+  }
+
+  async replySupportTicket(id, message) {
+    return this.request(`/support/tickets/${id}/reply`, {
+      method: 'POST',
+      body: { message },
     });
   }
 

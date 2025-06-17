@@ -13,6 +13,17 @@ async function ensureColumn(table, column, definition) {
   }
 }
 
+async function ensureSetting(key, value) {
+  const { rows } = await db.query('SELECT 1 FROM settings WHERE key = $1', [key]);
+  if (!rows.length) {
+    await db.query(
+      'INSERT INTO settings (key, value) VALUES ($1, $2)',
+      [key, value]
+    );
+    console.log(`Inserted default setting ${key}`);
+  }
+}
+
 async function createTables() {
   try {
     await db.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
@@ -182,11 +193,16 @@ async function seedDatabase() {
       ['submitter_name', 'TEXT'],
       ['submitter_email', 'TEXT'],
       ['assigned_to_user_id', 'UUID'],
-      ['internal_notes', 'TEXT']
+      ['internal_notes', 'TEXT'],
+      ['admin_response', 'TEXT']
     ];
     for (const [c, d] of ticketCols) {
       await ensureColumn('support_tickets', c, d);
     }
+
+    await ensureSetting('ai_api_url', process.env.AI_API_URL || 'http://localhost:3001/ask');
+    await ensureSetting('ai_api_key', process.env.AI_API_KEY || '');
+
     console.log('🚀 Début du seed de la base…');
 
     await db.query(`
