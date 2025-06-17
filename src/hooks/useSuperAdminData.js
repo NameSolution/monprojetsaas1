@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
 import apiService from '../services/api';
 
-export const useSuperAdminData = () => {
+export const useSuperAdminData = (resource) => {
   const [hotels, setHotels] = useState([]);
   const [users, setUsers] = useState([]);
   const [plans, setPlans] = useState([]);
   const [supportTickets, setSupportTickets] = useState([]);
   const [analytics, setAnalytics] = useState({
-    totalInteractions: 0,
-    monthlyInteractions: 0,
-    weeklyInteractions: 0,
-    totalHotels: 0,
-    totalTickets: 0,
-    openTickets: 0,
-    dailyInteractions: []
+    stats: {
+      totalUsers: 0,
+      totalHotels: 0,
+      totalTickets: 0,
+    },
+    conversationsData: [],
+    plansData: []
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,7 +33,11 @@ export const useSuperAdminData = () => {
       setUsers(usersData);
       setPlans(plansData);
       setSupportTickets(ticketsData);
-      setAnalytics(analyticsData);
+      setAnalytics({
+        stats: analyticsData.stats || {},
+        conversationsData: analyticsData.conversationsData || [],
+        plansData: analyticsData.plansData || []
+      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -123,22 +127,35 @@ export const useSuperAdminData = () => {
     }
   };
 
-  return {
+  const dataMap = {
     hotels,
     users,
     plans,
     supportTickets,
     analytics,
+  };
+  const setterMap = {
+    hotels: setHotels,
+    users: setUsers,
+    plans: setPlans,
+    supportTickets: setSupportTickets,
+    analytics: setAnalytics,
+  };
+
+  return {
+    data: dataMap[resource] || null,
+    allData: { hotels, users, plans, supportTickets, analytics },
     loading,
     error,
-    createHotel,
+    addHotel: createHotel,
     updateHotel,
     deleteHotel,
-    createUser,
+    addUser: createUser,
     updateUser,
     deleteUser,
     createSupportTicket,
     updateSupportTicket,
-    refetch: fetchData
+    refetch: fetchData,
+    setData: setterMap[resource],
   };
 };

@@ -10,18 +10,22 @@ import { useClientData } from '@/hooks/useClientData';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const QRCodeView = () => {
-    const { profile, loading, updateSlug } = useClientData();
+    const { profile, hotelId, loading, updateSlug } = useClientData();
     const [currentSlug, setCurrentSlug] = useState('');
     const [chatbotUrl, setChatbotUrl] = useState('');
 
     useEffect(() => {
-        if (!loading && profile.slug) {
+        if (loading || !profile) return;
+        if (profile.slug) {
             setCurrentSlug(profile.slug);
             setChatbotUrl(`${window.location.origin}/bot/${profile.slug}`);
+        } else if (hotelId) {
+            setChatbotUrl(`${window.location.origin}/bot/${hotelId}`);
         }
-    }, [profile.slug, loading]);
+    }, [profile, hotelId, loading]);
     
     const handleSaveSlug = async () => {
+        if (!profile) return;
         if (currentSlug.trim() === profile.slug) {
             toast({ title: "Aucun changement", description: "Le slug est déjà à jour."});
             return;
@@ -102,7 +106,7 @@ const QRCodeView = () => {
                                 className="bg-secondary border-border text-foreground components-client-QRCodeView__bg-secondary components-client-QRCodeView__border-border components-client-QRCodeView__text-foreground"
                                 placeholder="mon-hotel-slug"
                             />
-                            <Button onClick={handleSaveSlug} disabled={loading || currentSlug.trim() === profile.slug}>
+                            <Button onClick={handleSaveSlug} disabled={loading || !profile || currentSlug.trim() === profile.slug}>
                                 <Save className="w-4 h-4 mr-2" />
                                 Sauvegarder
                             </Button>
@@ -135,8 +139,8 @@ const QRCodeView = () => {
                     <div className="text-center">
                         <h4 className="text-foreground font-medium mb-4 components-client-QRCodeView__text-foreground">QR Code</h4>
                         <div className="qr-code-container inline-block p-2 bg-white rounded-md">
-                        {chatbotUrl ? 
-                            <img-replace alt="QR Code pour accéder au chatbot de l'hôtel" className="w-48 h-48" src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(chatbotUrl)}`} />
+                        {chatbotUrl ?
+                            <img alt="QR Code pour accéder au chatbot de l'hôtel" className="w-48 h-48" src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(chatbotUrl)}`} />
                             : <Skeleton className="w-48 h-48" />
                         }
                         </div>

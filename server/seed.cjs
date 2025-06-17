@@ -8,7 +8,11 @@ async function createTables() {
       CREATE EXTENSION IF NOT EXISTS pgcrypto;
       ALTER TABLE IF EXISTS public.users ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
       ALTER TABLE IF EXISTS public.hotels ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
+      ALTER TABLE IF EXISTS public.hotels ADD COLUMN IF NOT EXISTS contact_name VARCHAR(255);
+      ALTER TABLE IF EXISTS public.hotels ADD COLUMN IF NOT EXISTS contact_email VARCHAR(255);
       ALTER TABLE IF EXISTS public.profiles ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
+      ALTER TABLE IF EXISTS public.profiles ADD COLUMN IF NOT EXISTS user_id UUID UNIQUE;
+      ALTER TABLE IF EXISTS public.profiles ADD CONSTRAINT IF NOT EXISTS profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
       ALTER TABLE IF EXISTS public.hotel_languages ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
       ALTER TABLE IF EXISTS public.support_tickets ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
       ALTER TABLE IF EXISTS public.subscription_plans ADD COLUMN IF NOT EXISTS tenant_id INT NOT NULL DEFAULT 1;
@@ -35,17 +39,20 @@ async function createTables() {
         name VARCHAR(255) NOT NULL,
         description TEXT,
         logo_url VARCHAR(255),
+        contact_name VARCHAR(255),
+        contact_email VARCHAR(255),
         default_lang_code VARCHAR(10) DEFAULT 'en',
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
 
       CREATE TABLE IF NOT EXISTS public.profiles (
-        id UUID PRIMARY KEY REFERENCES public.users(id),
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id INT NOT NULL DEFAULT 1,
         name VARCHAR(255) NOT NULL,
         role VARCHAR(50) DEFAULT 'client',
         hotel_id UUID REFERENCES public.hotels(id),
+        user_id UUID UNIQUE REFERENCES public.users(id),
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
@@ -88,6 +95,22 @@ async function createTables() {
         tenant_id INT NOT NULL DEFAULT 1,
         name VARCHAR(255) NOT NULL
       );
+
+      
+
+      CREATE TABLE IF NOT EXISTS public.interactions (
+        id SERIAL PRIMARY KEY,
+        tenant_id INT NOT NULL DEFAULT 1,
+        hotel_id UUID REFERENCES public.hotels(id),
+        session_id UUID,
+        timestamp TIMESTAMPTZ DEFAULT NOW(),
+        lang_code VARCHAR(10),
+        user_input TEXT,
+        bot_response TEXT,
+        intent_detected TEXT,
+        confidence_score DOUBLE PRECISION,
+        feedback SMALLINT
+      );
     `);
 
     console.log('Database tables created successfully');
@@ -115,8 +138,8 @@ async function seedDatabase() {
 
     // Insert demo hotel
     await db.query(`
-      INSERT INTO public.hotels (id, name, description)
-      VALUES ('550e8400-e29b-41d4-a716-446655440000', 'Demo Hotel', 'A demonstration hotel for testing')
+      INSERT INTO public.hotels (id, name, description, contact_name, contact_email)
+      VALUES ('550e8400-e29b-41d4-a716-446655440000', 'Demo Hotel', 'A demonstration hotel for testing', 'Admin Demo', 'admin@example.com')
       ON CONFLICT (id) DO NOTHING;
     `);
 
@@ -145,9 +168,21 @@ async function seedDatabase() {
       `, [hashedSuperAdminPassword]);
 
       await db.query(`
-        INSERT INTO public.profiles (id, name, role)
+        INSERT INTO public.profiles (user_id, name, role)
         VALUES ($1, 'Super Admin', 'superadmin')
       `, [superAdminResult.rows[0].id]);
+    } else {
+      superAdminResult = existingSuperAdmin;
+      const prof = await db.query(
+        'SELECT id FROM public.profiles WHERE user_id = $1',
+        [existingSuperAdmin.rows[0].id]
+      );
+      if (prof.rows.length === 0) {
+        await db.query(
+          `INSERT INTO public.profiles (user_id, name, role) VALUES ($1, 'Super Admin', 'superadmin')`,
+          [existingSuperAdmin.rows[0].id]
+        );
+      }
     }
 
     // Create demo hotel admin
@@ -165,7 +200,7 @@ async function seedDatabase() {
       `, [hashedPassword]);
 
       await db.query(`
-        INSERT INTO public.profiles (id, name, role, hotel_id)
+        INSERT INTO public.profiles (user_id, name, role, hotel_id)
         VALUES ($1, 'Admin Demo', 'admin', '550e8400-e29b-41d4-a716-446655440000')
       `, [hotelAdminResult.rows[0].id]);
 
@@ -176,6 +211,26 @@ async function seedDatabase() {
           ('550e8400-e29b-41d4-a716-446655440000', 'en')
         ON CONFLICT (hotel_id, lang_code) DO NOTHING;
       `);
+
+      await db.query(`
+        INSERT INTO public.knowledge_items (hotel_id, info)
+        VALUES
+          ('550e8400-e29b-41d4-a716-446655440000', 'Le petit-d\'jeuner est servi de 7h \u00e0 10h.'),
+          ('550e8400-e29b-41d4-a716-446655440000', 'La piscine est ouverte de 8h \u00e0 20h.')
+        ON CONFLICT DO NOTHING;
+      `);
+    } else {
+      hotelAdminResult = existingHotelAdmin;
+      const prof = await db.query(
+        'SELECT id FROM public.profiles WHERE user_id = $1',
+        [existingHotelAdmin.rows[0].id]
+      );
+      if (prof.rows.length === 0) {
+        await db.query(
+          `INSERT INTO public.profiles (user_id, name, role, hotel_id) VALUES ($1, 'Admin Demo', 'admin', '550e8400-e29b-41d4-a716-446655440000')`,
+          [existingHotelAdmin.rows[0].id]
+        );
+      }
     }
 
     console.log('Database seeding completed successfully!');

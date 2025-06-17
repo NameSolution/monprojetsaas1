@@ -72,7 +72,7 @@ const SuperAdminDashboard = () => {
         return;
     }
     toast({
-        title: "Recherche en cours... (Simulée)",
+        title: "Recherche en cours...",
         description: `🚧 Recherche pour "${searchTerm}" - fonctionnalité à venir ! 🚀`,
     });
   };

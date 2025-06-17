@@ -1,5 +1,9 @@
 const jwt = require('jsonwebtoken');
 
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable not set');
+}
+
 const authMiddleware = (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
@@ -9,8 +13,12 @@ const authMiddleware = (req, res, next) => {
       return res.status(401).json({ error: 'Access denied. No token provided.' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key-change-in-production');
-    req.user = decoded;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = {
+      id: decoded.id || decoded.userId,
+      role: typeof decoded.role === 'string' ? decoded.role.trim() : decoded.role,
+      hotel_id: decoded.hotel_id
+    };
     next();
   } catch (error) {
     console.error('JWT verification error:', error);

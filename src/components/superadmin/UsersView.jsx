@@ -111,8 +111,8 @@ const UsersView = () => {
 
     const handleFilter = () => {
         toast({
-            title: "Filtrage des Utilisateurs (Simulé)",
-            description: "🚧 Cette fonctionnalité n'est pas encore implémentée—mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochain prompt ! 🚀",
+            title: "Filtrage des Utilisateurs",
+            description: "Cette fonctionnalité sera bientôt disponible.",
         });
     };
     
@@ -122,7 +122,7 @@ const UsersView = () => {
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h2 className="text-xl font-bold text-foreground">Gestion des Utilisateurs</h2>
-                        <p className="text-muted-foreground">Créez des utilisateurs ou réinitialisez des mots de passe (simulé).</p>
+                        <p className="text-muted-foreground">Créez des utilisateurs ou réinitialisez des mots de passe.</p>
                     </div>
                     <Button className="gradient-bg" onClick={handleAddUser} disabled={loading || hotelsList.length === 0}>
                         <Plus className="w-4 h-4 mr-2" />
@@ -182,7 +182,7 @@ const UsersView = () => {
                                                 <AlertDialogHeader>
                                                 <AlertDialogTitle className="text-foreground">Êtes-vous sûr ?</AlertDialogTitle>
                                                 <AlertDialogDescription className="text-muted-foreground">
-                                                    Cette action est irréversible et supprimera définitivement l'utilisateur (simulé).
+                                                    Cette action est irréversible et supprimera définitivement l'utilisateur.
                                                 </AlertDialogDescription>
                                                 </AlertDialogHeader>
                                                 <AlertDialogFooter>

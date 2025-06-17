@@ -39,7 +39,9 @@ const SuperAdminAnalyticsView = () => {
         );
     }
     
-    const { conversationsData, plansData } = data;
+    const stats = data?.stats || {};
+    const conversationsData = data?.conversationsData || [];
+    const plansData = data?.plansData || [];
 
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
