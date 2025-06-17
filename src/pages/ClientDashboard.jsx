@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -67,6 +67,10 @@ const ClientDashboard = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? 'hidden' : 'auto';
+  }, [sidebarOpen]);
+
   const Sidebar = () => (
     <div
       className={`w-64 sidebar-nav h-screen fixed left-0 top-0 p-6 flex flex-col z-50 transform md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
@@ -93,18 +97,21 @@ const ClientDashboard = () => {
           { id: 'settings', icon: Settings, label: 'Paramètres & Compte', path: '/client/settings' },
           { id: 'support', icon: LifeBuoy, label: 'Support', path: '/client/support' },
           { id: 'documentation', icon: BookUser, label: 'Documentation', path: '/client/documentation' },
-        ].map((item) => (
-          <Link
-            key={item.id}
-            to={item.path}
-            className={`nav-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left ${
-              getActiveTab() === item.id ? 'active' : ''
-            }`}
-          >
-            <item.icon className="w-5 h-5" />
-            <span>{item.label}</span>
-          </Link>
-        ))}
+        ].map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.id}
+              to={item.path}
+              className={`nav-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left ${
+                getActiveTab() === item.id ? 'active' : ''
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       <div>

@@ -45,6 +45,10 @@ const SuperAdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? 'hidden' : 'auto';
+  }, [sidebarOpen]);
+
+  useEffect(() => {
     if (!ticketsLoading && supportTicketsData) {
         const newTicketsCount = supportTicketsData.filter(ticket => ticket.status === 'Nouveau').length;
         setNotifications(newTicketsCount);
@@ -101,25 +105,28 @@ const SuperAdminDashboard = () => {
           { id: 'billing', icon: CreditCard, label: 'Facturation', path: '/superadmin/billing' },
           { id: 'system', icon: Server, label: 'Système IA', path: '/superadmin/system' },
           { id: 'settings', icon: SettingsIcon, label: 'Paramètres', path: '/superadmin/settings' }
-        ].map((item) => (
-          <Link
-            key={item.id}
-            to={item.path}
-            className={`nav-item w-full flex items-center justify-between space-x-3 px-4 py-3 rounded-lg text-left ${
-              getActiveTab() === item.id ? 'active' : ''
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-              <item.icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </div>
-            {item.badge && (
-              <span className="bg-destructive text-destructive-foreground text-xs font-bold px-2 py-0.5 rounded-full">
-                {item.badge}
-              </span>
-            )}
-          </Link>
-        ))}
+        ].map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.id}
+              to={item.path}
+              className={`nav-item w-full flex items-center justify-between space-x-3 px-4 py-3 rounded-lg text-left ${
+                getActiveTab() === item.id ? 'active' : ''
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <Icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </div>
+              {item.badge && (
+                <span className="bg-destructive text-destructive-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
       <div>
