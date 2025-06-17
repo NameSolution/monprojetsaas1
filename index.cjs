@@ -43,6 +43,8 @@ app.use('/api/languages', authMiddleware, languageRoutes);
 app.use('/api/knowledge', authMiddleware, knowledgeRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/billing', authMiddleware, billingRoutes);
+app.use('/api/upload', authMiddleware, uploadRoutes);
+app.use('/storage', express.static(path.join(__dirname, 'storage')));
 // Upload routes integrated directly
 
 // Health check endpoint

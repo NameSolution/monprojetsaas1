@@ -17,15 +17,17 @@ export const getLLMResponse = async (hotelId, sessionId, lang, prompt) => {
 };
 
 export const logInteraction = async (hotelId, sessionId, lang, input, output) => {
-  await fetch(`${API_BASE}/interactions`, {
+  const res = await fetch(`${API_BASE}/interactions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ hotel_id: hotelId, session_id: sessionId, lang, input, output })
   });
+  const data = await res.json();
+  return data.id;
 };
 
 export const submitInteractionRating = async (interactionId, ratingValue) => {
-  await fetch(`${API_BASE}/interactions`, {
+  await fetch(`${API_BASE}/interactions/rate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ interaction_id: interactionId, rating: ratingValue })

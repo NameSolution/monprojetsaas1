@@ -71,13 +71,20 @@ async function createTables() {
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id INT NOT NULL DEFAULT 1,
 
-      CREATE TABLE IF NOT EXISTS public.knowledge_items (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      
+
+      CREATE TABLE IF NOT EXISTS public.interactions (
+        id SERIAL PRIMARY KEY,
         tenant_id INT NOT NULL DEFAULT 1,
         hotel_id UUID REFERENCES public.hotels(id),
-        info TEXT NOT NULL,
-        created_at TIMESTAMPTZ DEFAULT NOW(),
-        updated_at TIMESTAMPTZ DEFAULT NOW()
+        session_id UUID,
+        timestamp TIMESTAMPTZ DEFAULT NOW(),
+        lang_code VARCHAR(10),
+        user_input TEXT,
+        bot_response TEXT,
+        intent_detected TEXT,
+        confidence_score DOUBLE PRECISION,
+        feedback SMALLINT
       );
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
