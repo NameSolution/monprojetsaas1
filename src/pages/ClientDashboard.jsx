@@ -17,7 +17,8 @@ import {
   BookUser,
   LayoutDashboard,
   Bell,
-  Languages as LanguagesIcon
+  Languages as LanguagesIcon,
+  LifeBuoy
 } from 'lucide-react';
 
 const DashboardView = lazy(() => import('@/components/client/DashboardView'));
@@ -26,7 +27,8 @@ const KnowledgeView = lazy(() => import('@/components/client/IntentsView'));
 const QRCodeView = lazy(() => import('@/components/client/QRCodeView'));
 const AnalyticsView = lazy(() => import('@/components/client/AnalyticsView'));
 const SettingsView = lazy(() => import('@/components/client/SettingsView'));
-const LanguagesView = lazy(() => import('@/components/client/LanguagesView')); 
+const LanguagesView = lazy(() => import('@/components/client/LanguagesView'));
+const SupportView = lazy(() => import('@/components/client/SupportView'));
 
 const LoadingViewFallback = () => (
   <div className="min-h-[calc(100vh-10rem)] flex items-center justify-center">
@@ -43,7 +45,7 @@ const ClientDashboard = () => {
 
   const getActiveTab = () => {
     const path = location.pathname.split('/').pop();
-    if (['customize', 'knowledge', 'analytics', 'qr-code', 'settings', 'documentation', 'languages'].includes(path)) {
+    if (['customize', 'knowledge', 'analytics', 'qr-code', 'settings', 'documentation', 'languages', 'support'].includes(path)) {
       return path;
     }
     return 'dashboard';
@@ -78,6 +80,7 @@ const ClientDashboard = () => {
           { id: 'analytics', icon: BarChart3, label: 'Analytics', path: '/client/analytics' },
           { id: 'qr-code', icon: QrCode, label: 'QR Code & Lien', path: '/client/qr-code' },
           { id: 'settings', icon: Settings, label: 'Paramètres & Compte', path: '/client/settings' },
+          { id: 'support', icon: LifeBuoy, label: 'Support', path: '/client/support' },
           { id: 'documentation', icon: BookUser, label: 'Documentation', path: '/client/documentation' },
         ].map((item) => (
           <Link
@@ -138,6 +141,7 @@ const ClientDashboard = () => {
               <Route path="languages" element={<LanguagesView />} />
               <Route path="qr-code" element={<QRCodeView />} />
               <Route path="analytics" element={<AnalyticsView />} />
+              <Route path="support" element={<SupportView />} />
               <Route path="settings" element={<SettingsView />} />
               <Route path="documentation" element={<DocumentationView />} />
               <Route path="*" element={<PlaceholderView title="Page non trouvée" message="Désolé, cette page n'existe pas." />} />

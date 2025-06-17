@@ -3,9 +3,11 @@ import apiService from '../services/api';
 
 export const useSuperAdminData = (resource) => {
   const [hotels, setHotels] = useState([]);
+  const [clients, setClients] = useState([]);
   const [users, setUsers] = useState([]);
   const [plans, setPlans] = useState([]);
   const [supportTickets, setSupportTickets] = useState([]);
+  const [dashboard, setDashboard] = useState(null);
   const [analytics, setAnalytics] = useState({
     stats: {
       totalUsers: 0,
@@ -21,7 +23,8 @@ export const useSuperAdminData = (resource) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [hotelsData, usersData, plansData, ticketsData, analyticsData] = await Promise.all([
+      const [clientsData, hotelsData, usersData, plansData, ticketsData, analyticsData] = await Promise.all([
+        apiService.getClients(),
         apiService.getHotels(),
         apiService.getUsers(),
         apiService.getPlans(),
@@ -29,6 +32,7 @@ export const useSuperAdminData = (resource) => {
         apiService.getAnalytics()
       ]);
 
+      setClients(clientsData);
       setHotels(hotelsData);
       setUsers(usersData);
       setPlans(plansData);
@@ -37,6 +41,18 @@ export const useSuperAdminData = (resource) => {
         stats: analyticsData.stats || {},
         conversationsData: analyticsData.conversationsData || [],
         plansData: analyticsData.plansData || []
+      });
+      setDashboard({
+        stats: analyticsData.stats || {},
+        revenueData: analyticsData.conversationsData || [],
+        recentHotels: hotelsData.slice(0, 4).map(h => ({
+          id: h.id,
+          name: h.name,
+          status: h.status || 'active',
+          users: usersData.filter(u => u.hotel_id === h.id).length,
+          conversations: 0
+        })),
+        systemAlerts: []
       });
     } catch (err) {
       setError(err.message);
@@ -127,24 +143,55 @@ export const useSuperAdminData = (resource) => {
     }
   };
 
+  const replySupportTicket = async (id, message) => {
+    try {
+      const updated = await apiService.replySupportTicket(id, message);
+      setSupportTickets(prev => prev.map(t => t.id === id ? { ...t, admin_response: message } : t));
+      return updated;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const fetchAISettings = async () => {
+    try {
+      const settings = await apiService.getAISettings();
+      return settings;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const saveAISettings = async (data) => {
+    try {
+      return await apiService.updateAISettings(data);
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const dataMap = {
+    clients,
     hotels,
     users,
     plans,
     supportTickets,
     analytics,
+    dashboard,
   };
   const setterMap = {
+    clients: setClients,
     hotels: setHotels,
     users: setUsers,
     plans: setPlans,
     supportTickets: setSupportTickets,
     analytics: setAnalytics,
+    dashboard: setDashboard,
   };
 
   return {
     data: dataMap[resource] || null,
-    allData: { hotels, users, plans, supportTickets, analytics },
+    allData: { clients, hotels, users, plans, supportTickets, analytics, dashboard },
     loading,
     error,
     addHotel: createHotel,
@@ -155,6 +202,9 @@ export const useSuperAdminData = (resource) => {
     deleteUser,
     createSupportTicket,
     updateSupportTicket,
+    replySupportTicket,
+    fetchAISettings,
+    saveAISettings,
     refetch: fetchData,
     setData: setterMap[resource],
   };

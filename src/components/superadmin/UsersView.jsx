@@ -37,7 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const UsersView = () => {
+const UsersView = ({ onClose }) => {
     const { data: initialUsers, loading, addUser, updateUser, deleteUser, allData } = useSuperAdminData('users');
     const { resetPassword } = useAuth();
     const [users, setUsers] = useState([]);
@@ -120,14 +120,19 @@ const UsersView = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="dashboard-card rounded-xl p-6">
                 <div className="flex items-center justify-between mb-6">
-                    <div>
+                    <div className="flex-1">
                         <h2 className="text-xl font-bold text-foreground">Gestion des Utilisateurs</h2>
                         <p className="text-muted-foreground">Créez des utilisateurs ou réinitialisez des mots de passe.</p>
                     </div>
-                    <Button className="gradient-bg" onClick={handleAddUser} disabled={loading || hotelsList.length === 0}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Ajouter un Utilisateur
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                        {onClose && (
+                            <Button size="sm" variant="secondary" onClick={onClose}>Fermer</Button>
+                        )}
+                        <Button className="gradient-bg" onClick={handleAddUser} disabled={loading || hotelsList.length === 0}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Ajouter un Utilisateur
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="flex items-center space-x-4 mb-4">

@@ -19,6 +19,7 @@ pool.connect()
   })
   .catch(err => {
     console.warn('Database connection failed:', err.message);
+    console.warn('Check the DB_* variables in your .env file.');
     console.log('Server will continue without database functionality');
   });
 

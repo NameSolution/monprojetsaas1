@@ -1,6 +1,8 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const db = require('./server/db.cjs');
 const authRoutes = require('./server/auth.cjs');
 const hotelRoutes = require('./server/hotels.cjs');
 const userRoutes = require('./server/users.cjs');
@@ -10,6 +12,9 @@ const planRoutes = require('./server/plans.cjs');
 const languageRoutes = require('./server/languages.cjs');
 const chatbotRoutes = require('./server/chatbot.cjs');
 const knowledgeRoutes = require('./server/knowledge.cjs');
+const clientsRoutes = require('./server/clients.cjs');
+const customizationRoutes = require('./server/customization.cjs');
+const settingsRoutes = require('./server/settings.cjs');
 // Upload functionality will be integrated directly
 
 const authMiddleware = require('./server/authMiddleware.cjs');
@@ -40,7 +45,10 @@ app.use('/api/support', authMiddleware, supportRoutes);
 app.use('/api/plans', authMiddleware, planRoutes);
 app.use('/api/languages', authMiddleware, languageRoutes);
 app.use('/api/knowledge', authMiddleware, knowledgeRoutes);
+app.use('/api/customization', authMiddleware, customizationRoutes);
+app.use('/api/settings', authMiddleware, settingsRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/clients', authMiddleware, clientsRoutes);
 // Upload routes integrated directly
 
 // Health check endpoint
@@ -60,9 +68,19 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  try {
+    const { rows } = await db.query(
+      "SELECT hotel_id FROM profiles WHERE role = 'superadmin' LIMIT 1"
+    );
+    if (rows.length) {
+      console.log('Superadmin hotel_id:', rows[0].hotel_id);
+    }
+  } catch (err) {
+    console.warn('Could not fetch superadmin hotel_id:', err.message);
+  }
 });
 
 // Handle process termination gracefully
