@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,31 +15,44 @@ const LoginPage = () => {
     email: '',
     password: '',
   });
-  const { login, loading, resetPassword } = useAuth();
+  const { login, loading, resetPassword, user } = useAuth();
   const navigate = useNavigate();
 
-    const handleLogin = async (e) => {
-      e.preventDefault();
-      try {
-        const { success, user, error } = await login(formData.email, formData.password);
-        if (success && user) {
-          if (user.role === 'superadmin') {
-            navigate('/superadmin');
-          } else if (['admin', 'manager'].includes(user.role) && user.hotel_id) {
-            navigate('/client');
-          } else if (['admin', 'manager'].includes(user.role) && !user.hotel_id) {
-            toast({variant: "destructive", title: "Configuration Requise (Simulée)", description: "Votre compte administrateur n'est lié à aucun hôtel. Contactez le Superadmin."});
-            navigate('/login');
-          } else {
-            toast({variant: "destructive", title: "Accès non configuré (Simulé)", description: "Votre rôle ou hôtel n'est pas correctement configuré."});
-            navigate('/login');
-          }
-        } else if (!success) {
-          toast({ variant: "destructive", title: "Erreur de connexion", description: error || "Identifiants invalides" });
-        }
-      } catch (error) {
-        toast({ variant: "destructive", title: "Erreur", description: error.message });
+  useEffect(() => {
+    if (user) {
+      const role = user.role ? user.role.trim() : '';
+      if (role === 'superadmin') {
+        navigate('/superadmin');
+      } else if (['admin', 'manager'].includes(role) && user.hotel_id) {
+        navigate('/client');
       }
+    }
+  }, [user, navigate]);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const trimmedEmail = formData.email.trim();
+      const trimmedPassword = formData.password.trim();
+
+      const { success, user, error } = await login(trimmedEmail, trimmedPassword);
+
+      if (success && user) {
+        const role = user.role ? user.role.trim() : '';
+        if (['admin', 'manager'].includes(role) && !user.hotel_id) {
+          toast({
+            variant: 'destructive',
+            title: 'Configuration Requise',
+            description: "Votre compte administrateur n'est lié à aucun hôtel. Contactez le Superadmin."
+          });
+        }
+        // Navigation will occur via the effect listening to `user`
+      } else if (!success) {
+        toast({ variant: "destructive", title: "Erreur de connexion", description: error || "Identifiants invalides" });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Erreur", description: error.message });
+    }
   };
   
   const handlePasswordResetRequest = async () => {
@@ -161,7 +174,7 @@ const LoginPage = () => {
             <a 
               href="#" 
               className="text-primary hover:text-primary/80 transition-colors pages-LoginPage__text-primary pages-LoginPage__hover-text-primary-80"
-              onClick={(e) => { e.preventDefault(); toast({ title: "Support (Simulé)", description: "La page de contact est en construction." })}}
+              onClick={(e) => { e.preventDefault(); toast({ title: "Support", description: "La page de contact est en construction." })}}
             >
               Contactez le support
             </a>

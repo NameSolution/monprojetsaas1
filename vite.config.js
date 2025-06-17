@@ -188,13 +188,16 @@ export default defineConfig({
 		react(),
 		addTransformIndexHtml
 	],
-	server: {
-		cors: true,
-		headers: {
-			'Cross-Origin-Embedder-Policy': 'credentialless',
-		},
-		allowedHosts: true,
-	},
+        server: {
+                cors: true,
+                headers: {
+                        'Cross-Origin-Embedder-Policy': 'credentialless',
+                },
+                allowedHosts: true,
+                proxy: {
+                        '/api': 'http://localhost:5000'
+                }
+        },
 	resolve: {
 		extensions: ['.jsx', '.js', '.tsx', '.ts', '.json', ],
 		alias: {

@@ -19,13 +19,23 @@ class ApiService {
     }
 
     const response = await fetch(`${API_BASE}${endpoint}`, config);
-    
+
+    const contentType = response.headers.get('Content-Type') || '';
+
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Request failed' }));
-      throw new Error(error.error || 'Request failed');
+      if (contentType.includes('application/json')) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Request failed');
+      } else {
+        await response.text();
+        throw new Error('Request failed');
+      }
     }
 
-    return response.json();
+    if (contentType.includes('application/json')) {
+      return response.json();
+    }
+    return response.text();
   }
 
   // Auth methods
@@ -37,7 +47,7 @@ class ApiService {
   }
 
   async signup(userData) {
-    return this.request('/auth/signup', {
+    return this.request('/auth/register', {
       method: 'POST',
       body: userData,
     });
@@ -81,7 +91,7 @@ class ApiService {
 
   // Analytics methods
   async getAnalytics() {
-    return this.request('/analytics');
+    return this.request('/analytics/overview');
   }
 
   // Support methods
@@ -100,6 +110,12 @@ class ApiService {
     return this.request(`/support/tickets/${id}`, {
       method: 'PUT',
       body: ticketData,
+    });
+  }
+
+  async deleteSupportTicket(id) {
+    return this.request(`/support/tickets/${id}`, {
+      method: 'DELETE'
     });
   }
 
@@ -144,6 +160,43 @@ class ApiService {
     return this.request(`/plans/${id}`, {
       method: 'PUT',
       body: planData,
+    });
+  }
+
+  // Languages methods
+  async getLanguages() {
+    return this.request('/languages');
+  }
+
+  // Knowledge base methods
+  async getKnowledgeItems() {
+    return this.request('/knowledge');
+  }
+
+  async createKnowledgeItem(data) {
+    return this.request('/knowledge', {
+      method: 'POST',
+      body: data
+    });
+  }
+
+  async updateKnowledgeItem(id, data) {
+    return this.request(`/knowledge/${id}`, {
+      method: 'PUT',
+      body: data
+    });
+  }
+
+  async deleteKnowledgeItem(id) {
+    return this.request(`/knowledge/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
+  // Billing (Stripe) methods
+  async createBillingSession() {
+    return this.request('/billing/session', {
+      method: 'POST'
     });
   }
 }

@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const AnalyticsView = () => {
     const { analytics, loading } = useClientData();
-    const { conversationData, topThemes } = analytics;
+    const { conversationData = [], topThemes = [] } = analytics || {};
 
     const handleExport = () => {
         toast({

@@ -16,11 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-const fetchAllSystemLangs = async () => [
-  { code: 'fr', name: 'Français' },
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Espagnol' },
-];
+import apiService from '@/services/api';
 
 const LanguagesView = () => {
     const { availableLanguages: initialLanguages, loading: clientDataLoading, updateHotelLanguages, hotelId, customization } = useClientData();
@@ -31,8 +27,12 @@ const LanguagesView = () => {
 
     useEffect(() => {
         const loadSystemLangs = async () => {
-            const langs = await fetchAllSystemLangs(); // This should be a mock function now
-            setSystemLanguages(langs);
+            try {
+                const langs = await apiService.getLanguages();
+                setSystemLanguages(langs);
+            } catch (error) {
+                console.error('Failed to load languages:', error);
+            }
         };
         loadSystemLangs();
     }, []);

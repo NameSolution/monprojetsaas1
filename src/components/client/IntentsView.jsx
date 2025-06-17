@@ -58,7 +58,12 @@ const KnowledgeView = () => {
 
     const confirmDeleteItem = async () => {
         if(!itemToDelete) return;
-        await deleteKnowledgeItem(itemToDelete.id);
+        if (typeof deleteKnowledgeItem === 'function') {
+            await deleteKnowledgeItem(itemToDelete.id);
+        } else {
+            console.error('deleteKnowledgeItem is not a function', deleteKnowledgeItem);
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Suppression indisponible' });
+        }
         setItemToDelete(null);
     };
 
@@ -73,7 +78,12 @@ const KnowledgeView = () => {
             info: currentItemData.info 
         };
         
-        await updateKnowledgeBase(itemToSave);
+        if (typeof updateKnowledgeBase === 'function') {
+            await updateKnowledgeBase(itemToSave);
+        } else {
+            console.error('updateKnowledgeBase is not a function', updateKnowledgeBase);
+            toast({ variant: 'destructive', title: 'Erreur', description: "Mise à jour indisponible" });
+        }
         setIsModalOpen(false);
         setCurrentItemData({ theme: '', info: '' });
         setEditingItem(null);
