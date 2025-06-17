@@ -213,7 +213,7 @@ node server/seed.cjs
 npm run build
 npm start
 ```
-Before running the server you must set a `JWT_SECRET` environment variable used to sign authentication tokens and a `STRIPE_SECRET` for billing.
+Before running the server copy `.env.example` to `.env` and adjust the values.  At minimum `JWT_SECRET` and `STRIPE_SECRET` must be set so authentication and billing work correctly.
 Pensez à relancer `npm run build` après toute modification du code React
 avant de démarrer le serveur en production.
 

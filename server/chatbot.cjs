@@ -1,11 +1,8 @@
 const express = require('express');
 const db = require('./db.cjs');
 
-// Use global fetch when available (Node >=18) and fallback to node-fetch
-let fetch = global.fetch;
-if (!fetch) {
-  fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
-}
+// Rely on Node 18+ built-in fetch
+const fetch = global.fetch;
 
 const router = express.Router();
 
