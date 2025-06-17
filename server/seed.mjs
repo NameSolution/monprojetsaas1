@@ -201,7 +201,10 @@ async function seedDatabase() {
     }
 
     await ensureSetting('ai_api_url', process.env.AI_API_URL || 'https://openrouter.ai/api/v1');
-    await ensureSetting('ai_api_key', process.env.AI_API_KEY || '');
+    await ensureSetting(
+      'ai_api_key',
+      process.env.OPENROUTER_API_KEY || process.env.AI_API_KEY || ''
+    );
 
     console.log('🚀 Début du seed de la base…');
 

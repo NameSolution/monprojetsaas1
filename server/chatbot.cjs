@@ -6,7 +6,7 @@ async function getOpenAI() {
   if (!openai) {
     const { default: OpenAI } = await import('openai');
     let url = process.env.AI_API_URL || 'https://openrouter.ai/api/v1';
-    let key = process.env.AI_API_KEY || '';
+    let key = process.env.OPENROUTER_API_KEY || process.env.AI_API_KEY || '';
     try {
       const { rows } = await db.query(
         "SELECT key, value FROM settings WHERE key IN ('ai_api_url','ai_api_key')"
@@ -17,7 +17,14 @@ async function getOpenAI() {
     } catch (err) {
       console.warn('Failed to load AI settings from DB:', err.message);
     }
-    openai = new OpenAI({ baseURL: url, apiKey: key });
+    openai = new OpenAI({
+      baseURL: url,
+      apiKey: key,
+      defaultHeaders: {
+        'HTTP-Referer': 'https://votresite.com',
+        'X-Title': 'HotelBot AI',
+      },
+    });
   }
   return openai;
 }
