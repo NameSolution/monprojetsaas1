@@ -192,6 +192,13 @@ class ApiService {
       method: 'DELETE'
     });
   }
+
+  // Billing (Stripe) methods
+  async createBillingSession() {
+    return this.request('/billing/session', {
+      method: 'POST'
+    });
+  }
 }
 
 export default new ApiService();

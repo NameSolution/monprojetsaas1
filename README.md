@@ -37,6 +37,7 @@ Interface utilisateur finale avec laquelle les clients de l'hôtel interagissent
 - **Interaction Intuitive** : Réponses du bot.
 - **Affichage Personnalisé** : Reprend les configurations de l'hôtel.
 _Remarque : les routes `/api/chatbot/ask` et `/api/chatbot/interactions` renvoient des réponses factices. Vous devrez implémenter votre propre logique backend pour un chatbot opérationnel._
+_Un point de terminaison `/api/billing/session` est aussi fourni comme exemple pour lancer une session Stripe. Il renvoie actuellement une URL factice._
 
 ## 🧠 Intelligence Artificielle & Fonctionnement (Conceptuel)
 

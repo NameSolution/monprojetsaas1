@@ -3,6 +3,10 @@ const bcrypt = require('bcryptjs');
 
 async function createTables() {
   try {
+      ALTER TABLE IF EXISTS public.hotels ADD COLUMN IF NOT EXISTS contact_name VARCHAR(255);
+      ALTER TABLE IF EXISTS public.hotels ADD COLUMN IF NOT EXISTS contact_email VARCHAR(255);
+        contact_name VARCHAR(255),
+        contact_email VARCHAR(255),
     console.log("▶ Création des extensions et colonnes dynamiques...");
 
     // pgcrypto + colonnes tenant_id avec précaution
@@ -102,8 +106,8 @@ async function createTables() {
     await db.query(`
       CREATE TABLE IF NOT EXISTS public.profiles (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id INT NOT NULL DEFAULT 1,
-        name VARCHAR(255) NOT NULL,
+      INSERT INTO public.hotels (id, name, description, contact_name, contact_email)
+      VALUES ('550e8400-e29b-41d4-a716-446655440000', 'Demo Hotel', 'A demonstration hotel for testing', 'Admin Demo', 'admin@example.com')
         role VARCHAR(50) DEFAULT 'client',
         hotel_id UUID REFERENCES public.hotels(id),
         user_id UUID UNIQUE REFERENCES public.users(id),
