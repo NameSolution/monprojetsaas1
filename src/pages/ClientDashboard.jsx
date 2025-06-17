@@ -71,6 +71,10 @@ const ClientDashboard = () => {
     document.body.style.overflow = sidebarOpen ? 'hidden' : 'auto';
   }, [sidebarOpen]);
 
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
   const Sidebar = () => (
     <div
       className={`w-64 sidebar-nav h-screen fixed left-0 top-0 p-6 flex flex-col z-50 transform md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
@@ -103,6 +107,7 @@ const ClientDashboard = () => {
             <Link
               key={item.id}
               to={item.path}
+              onClick={() => setSidebarOpen(false)}
               className={`nav-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left ${
                 getActiveTab() === item.id ? 'active' : ''
               }`}
@@ -152,7 +157,7 @@ const ClientDashboard = () => {
         <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
       <button
-        className="md:hidden fixed top-4 left-4 z-50 bg-primary text-primary-foreground p-2 rounded-md"
+        className={`md:hidden fixed top-4 left-4 z-50 bg-primary text-primary-foreground p-2 rounded-md ${sidebarOpen ? 'hidden' : ''}`}
         onClick={() => setSidebarOpen(true)}
       >
         <Menu className="w-5 h-5" />

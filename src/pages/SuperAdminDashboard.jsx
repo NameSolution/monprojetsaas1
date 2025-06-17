@@ -49,6 +49,10 @@ const SuperAdminDashboard = () => {
   }, [sidebarOpen]);
 
   useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
     if (!ticketsLoading && supportTicketsData) {
         const newTicketsCount = supportTicketsData.filter(ticket => ticket.status === 'Nouveau').length;
         setNotifications(newTicketsCount);
@@ -111,6 +115,7 @@ const SuperAdminDashboard = () => {
             <Link
               key={item.id}
               to={item.path}
+              onClick={() => setSidebarOpen(false)}
               className={`nav-item w-full flex items-center justify-between space-x-3 px-4 py-3 rounded-lg text-left ${
                 getActiveTab() === item.id ? 'active' : ''
               }`}
@@ -192,7 +197,7 @@ const SuperAdminDashboard = () => {
         <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
       <button
-        className="md:hidden fixed top-4 left-4 z-50 bg-primary text-primary-foreground p-2 rounded-md"
+        className={`md:hidden fixed top-4 left-4 z-50 bg-primary text-primary-foreground p-2 rounded-md ${sidebarOpen ? 'hidden' : ''}`}
         onClick={() => setSidebarOpen(true)}
       >
         <Menu className="w-5 h-5" />
