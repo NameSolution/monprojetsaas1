@@ -9,27 +9,25 @@ import { toast } from '@/components/ui/use-toast';
 import { Save, Bell, User, CreditCard } from 'lucide-react';
 import { useClientData } from '@/hooks/useClientData';
 import { Skeleton } from '@/components/ui/skeleton';
+import apiService from '@/services/api';
 
 const SettingsView = () => {
-    const { profile: initialProfile, subscription: initialSubscription, loading, updateProfile } = useClientData();
+    const { profile: initialProfile, loading, updateProfile } = useClientData();
     
     const [profile, setProfile] = useState({ hotelName: '', contactEmail: '', contactName: '', notificationEmail: '' });
     const [subscription, setSubscription] = useState({ plan: '', nextInvoice: '' });
 
     useEffect(() => {
-        if (!loading && initialProfile && initialSubscription) {
+        if (!loading && initialProfile) {
             setProfile({
                 hotelName: initialProfile.hotelName || '',
                 contactEmail: initialProfile.contactEmail || '',
                 contactName: initialProfile.contactName || '',
                 notificationEmail: initialProfile.notificationEmail || ''
             });
-            setSubscription({
-                plan: initialSubscription.plan || '',
-                nextInvoice: initialSubscription.nextInvoice || ''
-            });
+            setSubscription({ plan: '', nextInvoice: '' });
         }
-    }, [initialProfile, initialSubscription, loading]);
+    }, [initialProfile, loading]);
     
     const handleProfileChange = (e) => {
         setProfile({...profile, [e.target.id]: e.target.value });
@@ -39,11 +37,18 @@ const SettingsView = () => {
         await updateProfile(profile);
     };
     
-    const handleManageSubscription = () => {
-        toast({ 
-            title: "Gestion de l'abonnement", 
-            description: "🚧 Cette fonctionnalité n'est pas encore implémentée—mais ne vous inquiétez pas ! Vous pouvez la demander dans votre prochain prompt ! 🚀"
-        });
+    const handleManageSubscription = async () => {
+        try {
+            const session = await apiService.createBillingSession();
+            if (session.url) {
+                window.location.href = session.url;
+            }
+        } catch (err) {
+            toast({
+                title: "Erreur",
+                description: "Impossible de démarrer la session de paiement."
+            });
+        }
     };
 
     if (loading) {

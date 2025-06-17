@@ -43,7 +43,9 @@
     "recharts": "^2.8.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
-    "@prisma/client": "^5.1.0"
+    "@prisma/client": "^5.1.0",
+    "stripe": "^12.14.0",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@babel/generator": "^7.27.0",

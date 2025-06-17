@@ -4,12 +4,16 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('./db.cjs');
 
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable not set');
+}
+
 const router = express.Router();
 
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, role, hotel_id } = req.body;
     
     // Check if user exists
     const userExists = await db.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -23,21 +27,30 @@ router.post('/register', async (req, res) => {
 
     // Create user
     const result = await db.query(
-      'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name',
-      [email, hashedPassword, name]
+      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email',
+      [email, hashedPassword]
     );
 
-    // Create JWT token
+    await db.query(
+      'INSERT INTO profiles (user_id, name, role, hotel_id) VALUES ($1, $2, $3, $4)',
+      [result.rows[0].id, name || '', role || 'client', hotel_id || null]
+    );
+
+    const userObj = {
+      id: result.rows[0].id,
+      email,
+      name: name || '',
+      role: role || 'client',
+      hotel_id: hotel_id || null
+    };
+
     const token = jwt.sign(
-      { userId: result.rows[0].id },
-      process.env.JWT_SECRET || 'your-secret-key',
+      { id: userObj.id, role: userObj.role, hotel_id: userObj.hotel_id },
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    res.json({
-      token,
-      user: result.rows[0]
-    });
+    res.json({ token, user: userObj });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -47,14 +60,16 @@ router.post('/register', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+    if (typeof email === 'string') email = email.trim();
+    if (typeof password === 'string') password = password.trim();
     console.log('Login attempt for', email);
 
     // Check if user exists and load profile data
     const result = await db.query(
       `SELECT u.*, p.role, p.hotel_id, p.name
        FROM users u
-       LEFT JOIN profiles p ON u.id = p.id
+       LEFT JOIN profiles p ON u.id = p.user_id
        WHERE u.email = $1`,
       [email]
     );
@@ -64,6 +79,13 @@ router.post('/login', async (req, res) => {
     }
 
     const user = result.rows[0];
+    // Sanitize values in case seed data contains trailing whitespace
+    if (user.password_hash) {
+      user.password_hash = user.password_hash.trim();
+    }
+    if (user.role) {
+      user.role = user.role.trim();
+    }
     console.log('Comparing password for', user.email, 'hash', user.password_hash);
 
     // Ensure password hash exists before comparing
@@ -78,10 +100,23 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
+    // Reload profile details if missing (legacy seeds may not join correctly)
+    if (!user.role || !user.name) {
+      const profRes = await db.query(
+        'SELECT name, role, hotel_id FROM profiles WHERE user_id = $1',
+        [user.id]
+      );
+      if (profRes.rows.length > 0) {
+        user.name = profRes.rows[0].name;
+        user.role = profRes.rows[0].role;
+        user.hotel_id = profRes.rows[0].hotel_id;
+      }
+    }
+
     // Create JWT token
     const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET || 'your-secret-key',
+      { id: user.id, role: user.role, hotel_id: user.hotel_id },
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 

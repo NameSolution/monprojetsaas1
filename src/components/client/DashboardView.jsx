@@ -19,7 +19,13 @@ import { useClientData } from '@/hooks/useClientData';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const DashboardView = () => {
-  const { stats, recentConversations, profile, loading } = useClientData();
+  const { analytics, profile, loading } = useClientData();
+  const stats = analytics?.stats || {};
+  const recentConversations = analytics?.recentConversations || [];
+
+  if (!profile) {
+    return <div>Chargement du profil hôtel...</div>;
+  }
 
   const handleViewConversation = (convId) => {
     toast({
@@ -68,7 +74,7 @@ const DashboardView = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Conversations (Total)</p>
-                  <p className="text-2xl font-bold text-foreground">{stats.totalConversations.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.totalConversations ? stats.totalConversations.toLocaleString() : 0}</p>
                 </div>
                 <MessageSquare className="w-8 h-8 text-primary" />
               </div>

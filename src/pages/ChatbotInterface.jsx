@@ -38,8 +38,21 @@ const ChatbotInterface = () => {
     { code: 'de', name: 'Deutsch', flag: 'flag-de' },
   ];
 
+  const generateId = () => {
+    if (crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    array[6] = (array[6] & 0x0f) | 0x40;
+    array[8] = (array[8] & 0x3f) | 0x80;
+    return [...array].map((b, i) =>
+      [4,6,8,10].includes(i) ? '-' + b.toString(16).padStart(2, '0') : b.toString(16).padStart(2, '0')
+    ).join('');
+  };
+
   useEffect(() => {
-    setSessionId(crypto.randomUUID()); 
+    setSessionId(generateId());
     
     const loadHotelConfig = async () => {
         if(!slug) {
@@ -49,10 +62,10 @@ const ChatbotInterface = () => {
         }
         setLoadingConfig(true);
         const config = await fetchHotelConfigBySlug(slug);
-        
+
         if (!config || !config.id) {
-            console.error("Error fetching hotel config or hotel not found (simulated)");
-            toast({variant: "destructive", title: "Erreur", description: "Configuration du chatbot introuvable (simulé)."});
+            console.error("Error fetching hotel config or hotel not found");
+            toast({variant: "destructive", title: "Erreur", description: "Configuration du chatbot introuvable."});
             setHotelConfig(prev => ({...prev, id: null, name: "Chatbot Indisponible", welcomeMessage: "Ce chatbot n'est pas configuré."}));
         } else {
             const defaultLang = availableLanguages.find(l => l.code === config.defaultLanguage) || availableLanguages[0];
@@ -116,8 +129,8 @@ const ChatbotInterface = () => {
       }
 
     } catch (error) {
-        console.error("Error sending message or getting LLM response (simulated):", error);
-        toast({ variant: "destructive", title: "Erreur de communication (Simulée)", description: error.message });
+        console.error("Error sending message or getting LLM response:", error);
+        toast({ variant: "destructive", title: "Erreur de communication", description: error.message });
         const botErrorResponse = { type: 'bot', text: "Oups, une erreur est survenue. Veuillez réessayer.", id: `bot-error-${Date.now()}` };
         setMessages(prev => [...prev, botErrorResponse]);
     } finally {
@@ -129,11 +142,11 @@ const ChatbotInterface = () => {
       if (!interactionId) return;
       try {
           await submitInteractionRating(interactionId, ratingValue);
-          toast({ title: "Merci !", description: "Votre avis a été enregistré (simulé)."});
+          toast({ title: "Merci !", description: "Votre avis a été enregistré."});
           setInteractionToRate(null); 
       } catch (error) {
-          console.error("Error submitting rating (simulated):", error);
-          toast({variant: "destructive", title: "Erreur", description: "Impossible d'enregistrer votre avis (simulé)."});
+          console.error("Error submitting rating:", error);
+          toast({variant: "destructive", title: "Erreur", description: "Impossible d'enregistrer votre avis."});
       }
   };
 
@@ -173,8 +186,8 @@ const ChatbotInterface = () => {
             style={{ backgroundColor: hotelConfig.primaryColor, borderTopLeftRadius: 'calc(var(--radius) - 1px)', borderTopRightRadius: 'calc(var(--radius) - 1px)' }}
         >
           <div className="flex items-center space-x-3">
-            {hotelConfig.logoUrl ? 
-                <img-replace src={hotelConfig.logoUrl} alt="Logo" className="w-10 h-10 rounded-full object-cover border-2 border-white/50" />
+            {hotelConfig.logoUrl ?
+                <img src={hotelConfig.logoUrl} alt="Logo" className="w-10 h-10 rounded-full object-cover border-2 border-white/50" />
                 : <Bot className="w-8 h-8 text-primary-foreground" />
             }
             <div>
@@ -221,8 +234,8 @@ const ChatbotInterface = () => {
                 className={`flex items-end gap-2 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {message.type === 'bot' && (
-                     hotelConfig.logoUrl ? 
-                     <img-replace src={hotelConfig.logoUrl} alt="Bot" className="w-8 h-8 rounded-full object-cover flex-shrink-0" /> 
+                     hotelConfig.logoUrl ?
+                     <img src={hotelConfig.logoUrl} alt="Bot" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                      : <Bot className="w-8 h-8 text-muted-foreground flex-shrink-0" />
                 )}
                 <div
@@ -260,8 +273,8 @@ const ChatbotInterface = () => {
               animate={{ opacity: 1 }}
               className="flex items-end gap-2 justify-start"
             >
-               {hotelConfig.logoUrl ? 
-                <img-replace src={hotelConfig.logoUrl} alt="Bot Typing" className="w-8 h-8 rounded-full object-cover flex-shrink-0" /> 
+               {hotelConfig.logoUrl ?
+                <img src={hotelConfig.logoUrl} alt="Bot Typing" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                 : <Bot className="w-8 h-8 text-muted-foreground flex-shrink-0" />}
               <div className="message-bot rounded-bl-none p-3">
                 <div className="loading-dots text-muted-foreground">

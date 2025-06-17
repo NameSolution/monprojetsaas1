@@ -60,13 +60,13 @@ const SuperAdminDashboardView = () => {
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="metric-card rounded-xl p-6">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-muted-foreground">Conversations</p><p className="text-2xl font-bold text-foreground">{stats.totalConversations.toLocaleString()}</p></div>
+            <div><p className="text-sm text-muted-foreground">Conversations</p><p className="text-2xl font-bold text-foreground">{stats.totalConversations ? stats.totalConversations.toLocaleString() : 0}</p></div>
             <MessageSquare className="w-8 h-8 text-purple-500" />
           </div>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="metric-card rounded-xl p-6">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-muted-foreground">Revenus Mensuels</p><p className="text-2xl font-bold text-foreground">{stats.monthlyRevenue.toLocaleString()}€</p></div>
+            <div><p className="text-sm text-muted-foreground">Revenus Mensuels</p><p className="text-2xl font-bold text-foreground">{stats.monthlyRevenue ? stats.monthlyRevenue.toLocaleString() : 0}€</p></div>
             <DollarSign className="w-8 h-8 text-yellow-500" />
           </div>
         </motion.div>
