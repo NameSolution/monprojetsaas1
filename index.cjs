@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const db = require('./server/db.cjs');
 const authRoutes = require('./server/auth.cjs');
 const hotelRoutes = require('./server/hotels.cjs');
 const userRoutes = require('./server/users.cjs');
@@ -61,9 +62,19 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  try {
+    const { rows } = await db.query(
+      "SELECT hotel_id FROM profiles WHERE role = 'superadmin' LIMIT 1"
+    );
+    if (rows.length) {
+      console.log('Superadmin hotel_id:', rows[0].hotel_id);
+    }
+  } catch (err) {
+    console.warn('Could not fetch superadmin hotel_id:', err.message);
+  }
 });
 
 // Handle process termination gracefully

@@ -2,6 +2,17 @@
 import db from './db.cjs';
 import bcrypt from 'bcryptjs';
 
+async function ensureColumn(table, column, definition) {
+  const res = await db.query(
+    `SELECT 1 FROM information_schema.columns WHERE table_name = $1 AND column_name = $2`,
+    [table, column]
+  );
+  if (!res.rows.length) {
+    await db.query(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    console.log(`Added missing column ${table}.${column}`);
+  }
+}
+
 async function createTables() {
   try {
     await db.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
@@ -75,6 +86,29 @@ async function createTables() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS public.interactions (
+        id SERIAL PRIMARY KEY,
+        tenant_id INT NOT NULL DEFAULT 1,
+        hotel_id UUID REFERENCES public.hotels(id),
+        session_id UUID,
+        timestamp TIMESTAMPTZ DEFAULT NOW(),
+        lang_code VARCHAR(10),
+        user_input TEXT,
+        bot_response TEXT,
+        intent_detected TEXT,
+        confidence_score DOUBLE PRECISION,
+        feedback SMALLINT
+      );
+
+      CREATE TABLE IF NOT EXISTS public.knowledge_items (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id INT NOT NULL DEFAULT 1,
+        hotel_id UUID REFERENCES public.hotels(id),
+        info TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
     `);
 
     console.log('✅ Tables créées (ou mises à jour) avec succès');
@@ -87,6 +121,7 @@ async function createTables() {
 async function seedDatabase() {
   try {
     await createTables();
+    await ensureColumn('interactions', 'timestamp', 'TIMESTAMPTZ DEFAULT NOW()');
     console.log('🚀 Début du seed de la base…');
 
     await db.query(`
@@ -134,9 +169,25 @@ async function seedDatabase() {
         [hash]
       );
       await db.query(
-        `INSERT INTO public.profiles (tenant_id, name, role, user_id)
-         VALUES (1, 'Super Admin', 'superadmin', $1);`,
+        `INSERT INTO public.profiles (tenant_id, name, role, hotel_id, user_id)
+         VALUES (
+           1,
+           'Super Admin',
+           'superadmin',
+           '550e8400-e29b-41d4-a716-446655440000',
+           $1
+         );`,
         [rows[0].id]
+      );
+      await db.query(
+        `UPDATE public.hotels SET user_id = $1 WHERE id = '550e8400-e29b-41d4-a716-446655440000'`,
+        [rows[0].id]
+      );
+    } else {
+      // ensure profile has hotel_id linked
+      await db.query(
+        `UPDATE public.profiles SET hotel_id = '550e8400-e29b-41d4-a716-446655440000' WHERE user_id = $1`,
+        [sa[0].id]
       );
     }
 
@@ -172,6 +223,14 @@ async function seedDatabase() {
            WHERE hl.hotel_id = '550e8400-e29b-41d4-a716-446655440000'
              AND hl.lang_code = lang
         );
+      `);
+
+      await db.query(`
+        INSERT INTO public.knowledge_items (tenant_id, hotel_id, info)
+        VALUES
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'Le petit-d\'jeuner est servi de 7h \u00e0 10h.'),
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'La piscine est ouverte de 8h \u00e0 20h.')
+        ON CONFLICT DO NOTHING;
       `);
     }
 
