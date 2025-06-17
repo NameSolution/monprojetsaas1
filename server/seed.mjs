@@ -45,7 +45,19 @@ async function createTables() {
         logo_url VARCHAR(255),
         default_lang_code VARCHAR(10) NOT NULL DEFAULT 'en',
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        plan_id UUID,
+        user_id UUID,
+        theme_color TEXT,
+        welcome_message TEXT,
+        contact_name TEXT,
+        contact_email TEXT,
+        slug TEXT UNIQUE,
+        status TEXT,
+        booking_link TEXT,
+        address TEXT,
+        phone TEXT,
+        email TEXT
       );
 
       CREATE TABLE IF NOT EXISTS public.profiles (
@@ -109,6 +121,15 @@ async function createTables() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS public.settings (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id INT NOT NULL DEFAULT 1,
+        key VARCHAR(255) UNIQUE NOT NULL,
+        value TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
     `);
 
     console.log('✅ Tables créées (ou mises à jour) avec succès');
@@ -122,6 +143,36 @@ async function seedDatabase() {
   try {
     await createTables();
     await ensureColumn('interactions', 'timestamp', 'TIMESTAMPTZ DEFAULT NOW()');
+    await ensureColumn('interactions', 'session_id', 'UUID');
+
+    const hotelCols = [
+      ['plan_id', 'UUID'],
+      ['user_id', 'UUID'],
+      ['theme_color', 'TEXT'],
+      ['welcome_message', 'TEXT'],
+      ['contact_name', 'TEXT'],
+      ['contact_email', 'TEXT'],
+      ['slug', 'TEXT UNIQUE'],
+      ['status', 'TEXT'],
+      ['booking_link', 'TEXT'],
+      ['address', 'TEXT'],
+      ['phone', 'TEXT'],
+      ['email', 'TEXT']
+    ];
+    for (const [c, d] of hotelCols) {
+      await ensureColumn('hotels', c, d);
+    }
+
+    const ticketCols = [
+      ['hotel_id', 'UUID'],
+      ['submitter_name', 'TEXT'],
+      ['submitter_email', 'TEXT'],
+      ['assigned_to_user_id', 'UUID'],
+      ['internal_notes', 'TEXT']
+    ];
+    for (const [c, d] of ticketCols) {
+      await ensureColumn('support_tickets', c, d);
+    }
     console.log('🚀 Début du seed de la base…');
 
     await db.query(`
@@ -152,9 +203,31 @@ async function seedDatabase() {
     `);
 
     await db.query(`
-      INSERT INTO public.hotels (id, tenant_id, name, description)
-      VALUES ('550e8400-e29b-41d4-a716-446655440000', 1, 'Demo Hotel', 'A demonstration hotel for testing')
+      INSERT INTO public.hotels (id, tenant_id, name, description, slug, contact_name, contact_email, theme_color, welcome_message, status)
+      VALUES (
+        '550e8400-e29b-41d4-a716-446655440000',
+        1,
+        'Demo Hotel',
+        'A demonstration hotel for testing',
+        'demo-hotel',
+        'Demo Admin',
+        'demo@example.com',
+        '#2563EB',
+        'Bienvenue au Demo Hotel',
+        'active'
+      )
       ON CONFLICT (id) DO NOTHING;
+    `);
+
+    await db.query(`
+      UPDATE public.hotels
+         SET slug = 'demo-hotel',
+             contact_name = 'Demo Admin',
+             contact_email = 'demo@example.com',
+             theme_color = COALESCE(theme_color, '#2563EB'),
+             welcome_message = COALESCE(welcome_message, 'Bienvenue au Demo Hotel'),
+             status = COALESCE(status, 'active')
+       WHERE id = '550e8400-e29b-41d4-a716-446655440000';
     `);
 
     const { rows: sa } = await db.query(
