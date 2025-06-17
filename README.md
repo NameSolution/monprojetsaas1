@@ -147,14 +147,10 @@ Voici un aper√ßu des tables principales que votre backend et votre base de donn√
     -   `lang_code` (TEXT, PK, FK vers `languages.code`).
     -   `is_active` (BOOLEAN).
 
-6.  **`knowledge_base_articles`**
-    -   `id` (BIGINT, PK, auto-increment).
+6.  **`knowledge_items`**
+    -   `id` (UUID, PK).
     -   `hotel_id` (UUID, FK vers `hotels.id`).
-    -   `lang_code` (TEXT, FK vers `languages.code`).
-    -   `intent_name` (TEXT).
-    -   `question_variations` (TEXT[]).
-    -   `answer` (TEXT).
-    -   `is_active` (BOOLEAN).
+    -   `info` (TEXT).
     -   `created_at` (TIMESTAMPTZ).
     -   `updated_at` (TIMESTAMPTZ).
 

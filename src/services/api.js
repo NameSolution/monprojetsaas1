@@ -157,6 +157,31 @@ class ApiService {
   async getLanguages() {
     return this.request('/languages');
   }
+
+  // Knowledge base methods
+  async getKnowledgeItems() {
+    return this.request('/knowledge');
+  }
+
+  async createKnowledgeItem(data) {
+    return this.request('/knowledge', {
+      method: 'POST',
+      body: data
+    });
+  }
+
+  async updateKnowledgeItem(id, data) {
+    return this.request(`/knowledge/${id}`, {
+      method: 'PUT',
+      body: data
+    });
+  }
+
+  async deleteKnowledgeItem(id) {
+    return this.request(`/knowledge/${id}`, {
+      method: 'DELETE'
+    });
+  }
 }
 
 export default new ApiService();
