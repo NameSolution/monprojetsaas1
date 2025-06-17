@@ -5,10 +5,19 @@ let openai;
 async function getOpenAI() {
   if (!openai) {
     const { default: OpenAI } = await import('openai');
-    openai = new OpenAI({
-      baseURL: process.env.AI_API_URL || 'https://openrouter.ai/api/v1',
-      apiKey: process.env.AI_API_KEY || '',
-    });
+    let url = process.env.AI_API_URL || 'https://openrouter.ai/api/v1';
+    let key = process.env.AI_API_KEY || '';
+    try {
+      const { rows } = await db.query(
+        "SELECT key, value FROM settings WHERE key IN ('ai_api_url','ai_api_key')"
+      );
+      const map = Object.fromEntries(rows.map(r => [r.key, r.value]));
+      if (map.ai_api_url) url = map.ai_api_url;
+      if (map.ai_api_key) key = map.ai_api_key;
+    } catch (err) {
+      console.warn('Failed to load AI settings from DB:', err.message);
+    }
+    openai = new OpenAI({ baseURL: url, apiKey: key });
   }
   return openai;
 }

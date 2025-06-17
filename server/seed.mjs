@@ -200,7 +200,7 @@ async function seedDatabase() {
       await ensureColumn('support_tickets', c, d);
     }
 
-    await ensureSetting('ai_api_url', process.env.AI_API_URL || 'http://localhost:3001/ask');
+    await ensureSetting('ai_api_url', process.env.AI_API_URL || 'https://openrouter.ai/api/v1');
     await ensureSetting('ai_api_key', process.env.AI_API_KEY || '');
 
     console.log('🚀 Début du seed de la base…');
