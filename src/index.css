@@ -142,7 +142,6 @@ body {
 @media (max-width: 768px) {
   .sidebar-nav {
     width: 16rem;
-    transform: translateX(-100%);
   }
 }
 
