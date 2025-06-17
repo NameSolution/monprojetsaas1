@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 
-const HotelsView = () => {
+const HotelsView = ({ onClose }) => {
     const { data: initialHotels, loading, addHotel, updateHotel, deleteHotel } = useSuperAdminData('hotels');
     const [hotels, setHotels] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -112,14 +112,19 @@ const HotelsView = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="dashboard-card rounded-xl p-6">
                 <div className="flex items-center justify-between mb-6">
-                    <div>
+                    <div className="flex-1">
                         <h2 className="text-xl font-bold text-foreground">Gestion des Hôtels</h2>
                         <p className="text-muted-foreground">Ajoutez, modifiez ou suspendez des comptes hôtels.</p>
                     </div>
-                    <Button className="gradient-bg" onClick={handleAddHotel} disabled={loading}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Ajouter un Hôtel
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                        {onClose && (
+                            <Button size="sm" variant="secondary" onClick={onClose}>Fermer</Button>
+                        )}
+                        <Button className="gradient-bg" onClick={handleAddHotel} disabled={loading}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Ajouter un Hôtel
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="flex items-center space-x-4 mb-4">

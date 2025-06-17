@@ -40,15 +40,14 @@ import apiService from '@/services/api';
 
 
 const TicketStatusBadge = ({ status }) => {
-  let variant;
-  switch (status?.toLowerCase()) {
-    case 'nouveau': variant = 'destructive'; break;
-    case 'en cours': variant = 'secondary'; break;
-    case 'résolu': variant = 'default'; break;
-    case 'fermé': variant = 'outline'; break;
-    default: variant = 'outline';
-  }
-  return <Badge variant={variant} className="capitalize">{status || 'Indéfini'}</Badge>;
+  const lower = (status || '').toLowerCase();
+  const colorMap = {
+    'nouveau': 'bg-blue-500 text-white',
+    'en cours': 'bg-orange-500 text-white',
+    'résolu': 'bg-green-600 text-white',
+  };
+  const classes = colorMap[lower] || 'bg-muted text-foreground';
+  return <Badge className={`capitalize ${classes}`}>{status || 'Indéfini'}</Badge>;
 };
 
 const SupportTicketsView = () => {

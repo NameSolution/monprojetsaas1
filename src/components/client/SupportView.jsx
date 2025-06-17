@@ -70,6 +70,7 @@ const SupportView = () => {
                   <tr className="border-b border-border">
                     <th className="py-2 px-2 text-left text-muted-foreground">Sujet</th>
                     <th className="py-2 px-2 text-left text-muted-foreground">Statut</th>
+                    <th className="py-2 px-2 text-left text-muted-foreground">Réponse</th>
                     <th className="py-2 px-2 text-left text-muted-foreground">Créé le</th>
                   </tr>
                 </thead>
@@ -78,6 +79,7 @@ const SupportView = () => {
                     <tr key={t.id} className="border-b border-border/50">
                       <td className="py-2 px-2 text-foreground">{t.title}</td>
                       <td className="py-2 px-2 text-muted-foreground capitalize">{t.status}</td>
+                      <td className="py-2 px-2 text-muted-foreground whitespace-pre-wrap">{t.admin_response || '-'}</td>
                       <td className="py-2 px-2 text-muted-foreground">{new Date(t.created_at).toLocaleDateString()}</td>
                     </tr>
                   ))}

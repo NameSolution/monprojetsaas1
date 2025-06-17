@@ -1,8 +1,17 @@
 const express = require('express');
 const db = require('./db.cjs');
 
-// Rely on Node 18+ built-in fetch
-const fetch = global.fetch;
+let openai;
+async function getOpenAI() {
+  if (!openai) {
+    const { default: OpenAI } = await import('openai');
+    openai = new OpenAI({
+      baseURL: process.env.AI_API_URL || 'https://openrouter.ai/api/v1',
+      apiKey: process.env.AI_API_KEY || '',
+    });
+  }
+  return openai;
+}
 
 const router = express.Router();
 
@@ -55,16 +64,20 @@ router.post('/ask', async (req, res) => {
       [hotel_id, session_id]
     );
 
-    const aiRes = await fetch(process.env.AI_API_URL || 'https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(process.env.AI_API_KEY && { Authorization: `Bearer ${process.env.AI_API_KEY}` })
-      },
-      body: JSON.stringify({ prompt, lang, session_id, hotel_id, knowledge, history: historyRows })
+    const client = await getOpenAI();
+    const messages = [
+      { role: 'system', content: knowledge.join('\n') },
+      ...historyRows.flatMap(h => [
+        { role: 'user', content: h.user_input },
+        { role: 'assistant', content: h.bot_response }
+      ]),
+      { role: 'user', content: prompt }
+    ];
+    const completion = await client.chat.completions.create({
+      model: process.env.AI_MODEL || 'google/gemma-3n-e4b-it:free',
+      messages
     });
-    const data = await aiRes.json().catch(() => ({ response: '' }));
-    const responseText = data.response || '';
+    const responseText = completion.choices?.[0]?.message?.content || '';
 
     const keywords = extractKeywords(prompt);
     const insert = await db.query(

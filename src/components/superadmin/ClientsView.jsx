@@ -54,19 +54,13 @@ const ClientsView = () => {
         </div>
       </div>
       {showHotels ? (
-        <div className="relative">
-          <Button size="sm" variant="secondary" onClick={() => setShowHotels(false)} className="absolute right-4 -top-3">Fermer</Button>
-          <HotelsView />
-        </div>
+        <HotelsView onClose={() => setShowHotels(false)} />
       ) : (
         <Button variant="outline" onClick={() => setShowHotels(true)} className="mb-4">Gestion des hôtels</Button>
       )}
       <div className="my-8" />
       {showUsers ? (
-        <div className="relative">
-          <Button size="sm" variant="secondary" onClick={() => setShowUsers(false)} className="absolute right-4 -top-3">Fermer</Button>
-          <UsersView />
-        </div>
+        <UsersView onClose={() => setShowUsers(false)} />
       ) : (
         <Button variant="outline" onClick={() => setShowUsers(true)} className="mb-4">Gestion des utilisateurs</Button>
       )}
