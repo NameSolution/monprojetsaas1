@@ -25,7 +25,7 @@ export const logInteraction = async (hotelId, sessionId, lang, input, output) =>
 };
 
 export const submitInteractionRating = async (interactionId, ratingValue) => {
-  await fetch(`${API_BASE}/interactions`, {
+  await fetch(`${API_BASE}/interactions/rate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ interaction_id: interactionId, rating: ratingValue })
