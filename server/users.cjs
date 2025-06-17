@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
     }
 
     const result = await db.query(`
-      SELECT p.*, u.email, h.name as hotel_name
+      SELECT p.*, u.email, h.name as hotel
       FROM profiles p
       JOIN users u ON p.user_id = u.id
       LEFT JOIN hotels h ON p.hotel_id = h.id

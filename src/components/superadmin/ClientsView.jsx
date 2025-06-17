@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSuperAdminData } from '@/hooks/useSuperAdminData';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -7,6 +7,9 @@ import UsersView from './UsersView';
 
 const ClientsView = () => {
   const { data: clients, loading } = useSuperAdminData('clients');
+
+  const [showHotels, setShowHotels] = useState(false);
+  const [showUsers, setShowUsers] = useState(false);
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -49,9 +52,23 @@ const ClientsView = () => {
           </table>
         </div>
       </div>
-      <HotelsView />
+      {showHotels ? (
+        <div className="relative">
+          <button onClick={() => setShowHotels(false)} className="absolute right-4 top-4 text-muted-foreground">Fermer</button>
+          <HotelsView />
+        </div>
+      ) : (
+        <button className="mb-4 underline" onClick={() => setShowHotels(true)}>Ouvrir gestion des hôtels</button>
+      )}
       <div className="my-8" />
-      <UsersView />
+      {showUsers ? (
+        <div className="relative">
+          <button onClick={() => setShowUsers(false)} className="absolute right-4 top-4 text-muted-foreground">Fermer</button>
+          <UsersView />
+        </div>
+      ) : (
+        <button className="mb-4 underline" onClick={() => setShowUsers(true)}>Ouvrir gestion des utilisateurs</button>
+      )}
     </motion.div>
   );
 };

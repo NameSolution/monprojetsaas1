@@ -6,6 +6,7 @@ import { toast } from '@/components/ui/use-toast';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Cpu, HardDrive, Clock, Save, Download, Upload } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea'; // Assuming you have this shadcn component
 import { Slider } from '@/components/ui/slider'; // Assuming you have this shadcn component
 
@@ -29,6 +30,8 @@ const SystemView = () => {
     const [settings, setSettings] = useState({
         systemPrompt: "Tu es un assistant virtuel pour un hôtel. Sois concis, poli et professionnel. Ne réponds qu'aux questions relatives à l'hôtel.",
         temperature: 0.5,
+        apiUrl: '',
+        apiKey: ''
     });
 
     const handleSaveConfig = () => {
@@ -103,13 +106,21 @@ const SystemView = () => {
                     </div>
                     <div>
                         <Label className="text-foreground font-medium components-superadmin-SystemView__text-foreground">Température ({settings.temperature})</Label>
-                        <Slider 
-                            defaultValue={[settings.temperature]} 
-                            max={1} 
-                            step={0.1} 
+                        <Slider
+                            defaultValue={[settings.temperature]}
+                            max={1}
+                            step={0.1}
                             onValueChange={(value) => setSettings({...settings, temperature: value[0]})}
                             className="w-full mt-2"
                         />
+                    </div>
+                    <div>
+                        <Label htmlFor="apiUrl" className="text-foreground font-medium">API URL</Label>
+                        <Input id="apiUrl" value={settings.apiUrl} onChange={(e) => setSettings({...settings, apiUrl: e.target.value})} className="mt-2 bg-secondary border-border text-foreground" />
+                    </div>
+                    <div>
+                        <Label htmlFor="apiKey" className="text-foreground font-medium">Clé API</Label>
+                        <Input id="apiKey" value={settings.apiKey} onChange={(e) => setSettings({...settings, apiKey: e.target.value})} className="mt-2 bg-secondary border-border text-foreground" />
                     </div>
                     <Button className="gradient-bg" onClick={handleSaveConfig}>
                         <Save className="w-4 h-4 mr-2" />

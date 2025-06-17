@@ -27,9 +27,12 @@ router.get('/hotel/:slug', async (req, res) => {
 router.post('/ask', async (req, res) => {
   const { hotel_id, session_id, lang, prompt } = req.body;
   try {
-    const aiRes = await fetch(process.env.AI_API_URL || 'http://localhost:3001/ask', {
+    const aiRes = await fetch(process.env.AI_API_URL || 'https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(process.env.AI_API_KEY && { Authorization: `Bearer ${process.env.AI_API_KEY}` })
+      },
       body: JSON.stringify({ prompt, lang, session_id, hotel_id })
     });
     const data = await aiRes.json().catch(() => ({ response: '' }));
