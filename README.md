@@ -36,6 +36,7 @@ Espace dédié à chaque hôtel pour gérer et personnaliser son propre assistan
 Interface utilisateur finale avec laquelle les clients de l'hôtel interagissent.
 - **Interaction Intuitive** : Réponses du bot.
 - **Affichage Personnalisé** : Reprend les configurations de l'hôtel.
+_Remarque : les routes `/api/chatbot/ask` et `/api/chatbot/interactions` renvoient des réponses factices. Vous devrez implémenter votre propre logique backend pour un chatbot opérationnel._
 
 ## 🧠 Intelligence Artificielle & Fonctionnement (Conceptuel)
 
@@ -211,6 +212,7 @@ node server/seed.cjs
 npm run build
 npm start
 ```
+Before running the server you must set a `JWT_SECRET` environment variable used to sign authentication tokens.
 Pensez à relancer `npm run build` après toute modification du code React
 avant de démarrer le serveur en production.
 

@@ -19,13 +19,23 @@ class ApiService {
     }
 
     const response = await fetch(`${API_BASE}${endpoint}`, config);
-    
+
+    const contentType = response.headers.get('Content-Type') || '';
+
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Request failed' }));
-      throw new Error(error.error || 'Request failed');
+      if (contentType.includes('application/json')) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Request failed');
+      } else {
+        await response.text();
+        throw new Error('Request failed');
+      }
     }
 
-    return response.json();
+    if (contentType.includes('application/json')) {
+      return response.json();
+    }
+    return response.text();
   }
 
   // Auth methods

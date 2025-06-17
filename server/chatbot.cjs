@@ -20,11 +20,12 @@ router.get('/hotel/:slug', async (req, res) => {
   }
 });
 
-// Placeholder chatbot interaction endpoint
+// Placeholder chatbot interaction endpoint - integrate with your AI service
 router.post('/ask', async (req, res) => {
   res.json({ response: 'Fonctionnalité bientôt disponible.' });
 });
 
+// Placeholder endpoint to store interactions
 router.post('/interactions', async (req, res) => {
   res.json({ success: true });
 });

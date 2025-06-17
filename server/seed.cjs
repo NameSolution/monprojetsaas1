@@ -135,6 +135,30 @@ async function createTables() {
         status VARCHAR(50) DEFAULT 'open',
         priority VARCHAR(50) DEFAULT 'medium',
         user_id UUID REFERENCES public.users(id),
+    } else {
+      superAdminResult = existingSuperAdmin;
+      const prof = await db.query(
+        'SELECT id FROM public.profiles WHERE user_id = $1',
+        [existingSuperAdmin.rows[0].id]
+      );
+      if (prof.rows.length === 0) {
+        await db.query(
+          `INSERT INTO public.profiles (user_id, name, role) VALUES ($1, 'Super Admin', 'superadmin')`,
+          [existingSuperAdmin.rows[0].id]
+        );
+      }
+    } else {
+      hotelAdminResult = existingHotelAdmin;
+      const prof = await db.query(
+        'SELECT id FROM public.profiles WHERE user_id = $1',
+        [existingHotelAdmin.rows[0].id]
+      );
+      if (prof.rows.length === 0) {
+        await db.query(
+          `INSERT INTO public.profiles (user_id, name, role, hotel_id) VALUES ($1, 'Admin Demo', 'admin', '550e8400-e29b-41d4-a716-446655440000')`,
+          [existingHotelAdmin.rows[0].id]
+        );
+      }
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
