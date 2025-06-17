@@ -49,15 +49,15 @@ router.get('/my-hotel', async (req, res) => {
 // Create hotel
 router.post('/', async (req, res) => {
   try {
-    const { name, description, logo_url, default_lang_code } = req.body;
+    const { name, description, logo_url, default_lang_code, contact_name, contact_email } = req.body;
     if (!name) {
       return res.status(400).json({ error: 'Hotel name is required' });
     }
     const result = await db.query(
-      `INSERT INTO hotels (name, description, logo_url, default_lang_code)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO hotels (name, description, logo_url, default_lang_code, contact_name, contact_email)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [name, description, logo_url, default_lang_code]
+      [name, description, logo_url, default_lang_code, contact_name, contact_email]
     );
 
     res.json(result.rows[0]);
@@ -70,7 +70,7 @@ router.post('/', async (req, res) => {
 // Update hotel
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, description, logo_url, default_lang_code } = req.body;
+  const { name, description, logo_url, default_lang_code, contact_name, contact_email } = req.body;
 
   try {
     const result = await db.query(
@@ -79,10 +79,12 @@ router.put('/:id', async (req, res) => {
            description = COALESCE($2, description),
            logo_url = COALESCE($3, logo_url),
            default_lang_code = COALESCE($4, default_lang_code),
+           contact_name = COALESCE($5, contact_name),
+           contact_email = COALESCE($6, contact_email),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $5
+       WHERE id = $7
        RETURNING *`,
-      [name, description, logo_url, default_lang_code, id]
+      [name, description, logo_url, default_lang_code, contact_name, contact_email, id]
     );
 
     if (result.rows.length === 0) {
