@@ -229,6 +229,7 @@ async function seedDatabase() {
         ('fr', 1, 'Français'),
         ('en', 1, 'English'),
         ('es', 1, 'Español'),
+        ('it', 1, 'Italiano'),
         ('de', 1, 'Deutsch')
       ) AS v(code,tenant_id,name)
       WHERE NOT EXISTS (
@@ -350,7 +351,11 @@ async function seedDatabase() {
         INSERT INTO public.knowledge_items (tenant_id, hotel_id, info)
         VALUES
           (1, '550e8400-e29b-41d4-a716-446655440000', 'Le petit-d\'jeuner est servi de 7h \u00e0 10h.'),
-          (1, '550e8400-e29b-41d4-a716-446655440000', 'La piscine est ouverte de 8h \u00e0 20h.')
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'La piscine est ouverte de 8h \u00e0 20h.'),
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'Le check-in commence \u00e0 15h.'),
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'Le check-out doit \u00eatre effectu\u00e9 avant 11h.'),
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'Le wifi est gratuit dans tout l\'\u00e9tablissement.'),
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'Un parking priv\u00e9 est disponible sur r\u00e9servation.')
         ON CONFLICT DO NOTHING;
       `);
     }

@@ -35,6 +35,7 @@ const ChatbotInterface = () => {
     { code: 'fr', name: 'Français', flag: 'flag-fr', active: true },
     { code: 'en', name: 'English', flag: 'flag-en', active: true },
     { code: 'es', name: 'Español', flag: 'flag-es', active: false },
+    { code: 'it', name: 'Italiano', flag: 'flag-it', active: false },
     { code: 'de', name: 'Deutsch', flag: 'flag-de', active: false },
   ];
   const [availableLanguages, setAvailableLanguages] = useState(fallbackLanguages);
@@ -70,8 +71,12 @@ const ChatbotInterface = () => {
             setHotelConfig(prev => ({...prev, id: null, name: "Chatbot Indisponible", welcomeMessage: "Ce chatbot n'est pas configuré."}));
         } else {
             const langs = Array.isArray(config.languages) && config.languages.length > 0 ? config.languages : fallbackLanguages;
-            setAvailableLanguages(langs);
-            const defaultLang = langs.find(l => l.code === config.defaultLanguage) || langs[0];
+            const mapped = langs.map(l => ({
+              ...l,
+              flag: l.flag || `flag-${l.code}`
+            }));
+            setAvailableLanguages(mapped);
+            const defaultLang = mapped.find(l => l.code === config.defaultLanguage) || mapped[0];
             setHotelConfig({
                 id: config.id,
                 name: config.name || 'Assistant Hôtelier',

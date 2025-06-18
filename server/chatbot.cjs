@@ -35,11 +35,14 @@ router.get('/hotel/:slug', async (req, res) => {
               COALESCE(c.logo_url,h.logo_url) AS logo_url,
               COALESCE(c.default_language,h.default_lang_code) AS default_lang_code,
               c.menu_items,
-              COALESCE(json_agg(json_build_object('code', hl.lang_code, 'active', hl.is_active))
+              COALESCE(json_agg(json_build_object('code', hl.lang_code,
+                                          'name', l.name,
+                                          'active', hl.is_active))
                   FILTER (WHERE hl.lang_code IS NOT NULL), '[]') AS languages
          FROM hotels h
          LEFT JOIN hotel_customizations c ON c.hotel_id = h.id
          LEFT JOIN hotel_languages hl ON hl.hotel_id = h.id
+         LEFT JOIN languages l ON l.code = hl.lang_code
         WHERE h.slug = $1
         GROUP BY h.id, c.id`,
       [req.params.slug]

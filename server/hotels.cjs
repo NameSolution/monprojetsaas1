@@ -26,10 +26,14 @@ router.get('/my-hotel', async (req, res) => {
   try {
     const result = await db.query(
       `SELECT h.*,
-        COALESCE(json_agg(json_build_object('code', hl.lang_code, 'active', hl.is_active)) FILTER (WHERE hl.lang_code IS NOT NULL), '[]') AS languages
+        COALESCE(json_agg(json_build_object('code', hl.lang_code,
+                                     'name', l.name,
+                                     'active', hl.is_active))
+                 FILTER (WHERE hl.lang_code IS NOT NULL), '[]') AS languages
        FROM profiles pr
        JOIN hotels h ON h.id = pr.hotel_id
        LEFT JOIN hotel_languages hl ON hl.hotel_id = h.id
+       LEFT JOIN languages l ON l.code = hl.lang_code
        WHERE pr.user_id = $1
        GROUP BY h.id`
       , [req.user.id]
