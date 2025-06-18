@@ -107,6 +107,7 @@ async function createTables() {
         theme_color TEXT,
         logo_url TEXT,
         default_language TEXT,
+        menu_items JSONB,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
@@ -253,14 +254,15 @@ async function seedDatabase() {
     `);
 
     await db.query(`
-      INSERT INTO public.hotel_customizations (hotel_id, name, welcome_message, theme_color, logo_url, default_language)
+      INSERT INTO public.hotel_customizations (hotel_id, name, welcome_message, theme_color, logo_url, default_language, menu_items)
       VALUES (
         '550e8400-e29b-41d4-a716-446655440000',
         'Assistant Virtuel',
         'Bienvenue au Demo Hotel',
         '#2563EB',
         NULL,
-        'fr'
+        'fr',
+        '[{"label":"Accueil","url":"/"},{"label":"Réservation","url":"/booking"}]'::jsonb
       )
       ON CONFLICT (hotel_id) DO NOTHING;
     `);

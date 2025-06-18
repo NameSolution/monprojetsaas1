@@ -213,7 +213,7 @@ node server/seed.cjs
 npm run build
 npm start
 ```
-Before running the server copy `.env.example` to `.env` and adjust the values.  At minimum `JWT_SECRET` and `STRIPE_SECRET` must be set so authentication and billing work correctly. `AI_API_URL` controls the endpoint used for AI responses (defaults to `https://openrouter.ai/api/v1` in the sample file). Use `OPENROUTER_API_KEY` (or the legacy `AI_API_KEY`) to provide your token from OpenRouter. Update `DB_USER` and `DB_PASSWORD` if your local PostgreSQL credentials differ from the defaults.  The seed script now also creates a `hotel_customizations` table so that settings from the Personnalisation menu persist between sessions.
+Before running the server copy `.env.example` to `.env` and adjust the values.  At minimum `JWT_SECRET` and `STRIPE_SECRET` must be set so authentication and billing work correctly. `AI_API_URL` and `AI_MODEL` configure the LLM endpoint (defaults to a local Ollama instance at `http://localhost:11434/v1` using `phi3:mini`). If you use OpenRouter instead, set `AI_API_URL` and `AI_API_KEY` accordingly. Update `DB_USER` and `DB_PASSWORD` if your local PostgreSQL credentials differ from the defaults.  The seed script now also creates a `hotel_customizations` table so that settings from the Personnalisation menu persist between sessions.
 Pensez à relancer `npm run build` après toute modification du code React
 avant de démarrer le serveur en production.
 

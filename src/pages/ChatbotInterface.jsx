@@ -76,6 +76,7 @@ const ChatbotInterface = () => {
                 welcomeMessage: config.welcomeMessage || 'Bonjour ! Comment puis-je vous aider ?',
                 logoUrl: config.logoUrl,
                 defaultLanguage: defaultLang.code,
+                menuItems: config.menu_items || []
             });
             setCurrentLanguage(defaultLang);
         }
@@ -221,6 +222,16 @@ const ChatbotInterface = () => {
             </AnimatePresence>
           </div>
         </div>
+
+        {hotelConfig.menuItems && hotelConfig.menuItems.length > 0 && (
+          <div className="overflow-x-auto whitespace-nowrap p-2 border-b border-border" style={{backgroundColor: hotelConfig.primaryColor}}>
+            {hotelConfig.menuItems.map((item, idx) => (
+              <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary-foreground text-sm mr-4 hover:underline">
+                {item.label}
+              </a>
+            ))}
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-hide">
           <AnimatePresence>

@@ -5,7 +5,7 @@ let openai;
 async function getOpenAI() {
   if (!openai) {
     const { default: OpenAI } = await import('openai');
-    let url = process.env.AI_API_URL || 'https://openrouter.ai/api/v1';
+    let url = process.env.AI_API_URL || 'http://localhost:11434/v1';
     let key = process.env.OPENROUTER_API_KEY || process.env.AI_API_KEY || '';
     try {
       const { rows } = await db.query(
@@ -35,7 +35,16 @@ const router = express.Router();
 router.get('/hotel/:slug', async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT id, name, theme_color, welcome_message, logo_url, default_lang_code FROM hotels WHERE slug = $1`,
+      `SELECT h.id,
+              COALESCE(c.name,h.name) AS name,
+              COALESCE(c.theme_color,h.theme_color) AS theme_color,
+              COALESCE(c.welcome_message,h.welcome_message) AS welcome_message,
+              COALESCE(c.logo_url,h.logo_url) AS logo_url,
+              COALESCE(c.default_language,h.default_lang_code) AS default_lang_code,
+              c.menu_items
+         FROM hotels h
+         LEFT JOIN hotel_customizations c ON c.hotel_id = h.id
+        WHERE h.slug = $1`,
       [req.params.slug]
     );
     if (result.rows.length === 0) {
@@ -90,7 +99,7 @@ router.post('/ask', async (req, res) => {
       { role: 'user', content: prompt }
     ];
     const completion = await client.chat.completions.create({
-      model: process.env.AI_MODEL || 'google/gemma-3n-e4b-it:free',
+      model: process.env.AI_MODEL || 'phi3:mini',
       messages
     });
     const responseText = completion.choices?.[0]?.message?.content || '';
