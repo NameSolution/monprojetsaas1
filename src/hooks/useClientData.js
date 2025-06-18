@@ -7,7 +7,7 @@ export const useClientData = () => {
   const [analytics, setAnalytics] = useState({});
   const [supportTickets, setSupportTickets] = useState([]);
   const [knowledgeBase, setKnowledgeBase] = useState([]);
-  const [agentNodes, setAgentNodes] = useState([]);
+  const [agentConfig, setAgentConfig] = useState(null);
   const [availableLanguages, setAvailableLanguages] = useState([]);
   const [hotelId, setHotelId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -47,20 +47,20 @@ export const useClientData = () => {
           console.error('getKnowledgeItems failed:', err);
           return [];
         });
-      const nodesPromise = apiService
-        .getAgentNodes()
+      const agentPromise = apiService
+        .getAgentConfig()
         .catch((err) => {
-          console.error('getAgentNodes failed:', err);
-          return [];
+          console.error('getAgentConfig failed:', err);
+          return null;
         });
 
-      const [hotelData, analyticsData, customizationData, ticketsData, knowledgeData, nodesData] = await Promise.all([
+      const [hotelData, analyticsData, customizationData, ticketsData, knowledgeData, agentData] = await Promise.all([
         hotelPromise,
         analyticsPromise,
         customizationPromise,
         ticketsPromise,
         knowledgePromise,
-        nodesPromise,
+        agentPromise,
       ]);
 
       if (hotelData) {
@@ -97,7 +97,7 @@ export const useClientData = () => {
       setAnalytics(analyticsData || {});
       setSupportTickets(ticketsData || []);
       setKnowledgeBase(knowledgeData || []);
-      setAgentNodes(nodesData || []);
+      if (agentData) setAgentConfig(agentData);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -213,21 +213,10 @@ export const useClientData = () => {
     }
   };
 
-  const saveAgentNode = async (node) => {
-    const saved = await apiService.saveAgentNode(node);
-    setAgentNodes((prev) => {
-      const idx = prev.findIndex((n) => n.id === saved.id);
-      if (idx >= 0) {
-        return prev.map((n) => (n.id === saved.id ? saved : n));
-      }
-      return [...prev, saved];
-    });
+  const saveAgentConfig = async (config) => {
+    const saved = await apiService.saveAgentConfig(config);
+    setAgentConfig(saved);
     return saved;
-  };
-
-  const deleteAgentNode = async (id) => {
-    await apiService.deleteAgentNode(id);
-    setAgentNodes((prev) => prev.filter((n) => n.id !== id));
   };
 
   return {
@@ -247,9 +236,8 @@ export const useClientData = () => {
     createSupportTicket,
     updateKnowledgeBase,
     deleteKnowledgeItem,
-    agentNodes,
-    saveAgentNode,
-    deleteAgentNode,
+    agentConfig,
+    saveAgentConfig,
     refetch: fetchData
   };
 };

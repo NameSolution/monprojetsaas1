@@ -2,57 +2,57 @@ const express = require('express');
 const router = express.Router();
 const db = require('./db.cjs');
 
-// Get all nodes for current hotel
+// Fetch agent config. Superadmins can specify ?hotel_id=XXX
 router.get('/', async (req, res) => {
+  const hotelId =
+    req.user.role === 'superadmin'
+      ? req.query.hotel_id || req.user.hotel_id
+      : req.user.hotel_id;
   try {
-    const hotelId = req.user.hotel_id;
     const { rows } = await db.query(
-      'SELECT * FROM agent_nodes WHERE hotel_id = $1 ORDER BY created_at',
+      'SELECT * FROM agents WHERE hotel_id = $1 LIMIT 1',
       [hotelId]
     );
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch nodes' });
-  }
-});
-
-// Create or update node
-router.post('/', async (req, res) => {
-  const hotelId = req.user.hotel_id;
-  const { id, prompt, response, next_id, buttons } = req.body;
-  try {
-    if (id) {
-      const { rows } = await db.query(
-        `UPDATE agent_nodes SET prompt=$1, response=$2, next_id=$3, buttons=$4, updated_at=NOW()
-         WHERE id=$5 AND hotel_id=$6 RETURNING *`,
-        [prompt, response, next_id, buttons, id, hotelId]
-      );
-      return res.json(rows[0]);
+    if (rows.length === 0) {
+      return res.json(null);
     }
-    const { rows } = await db.query(
-      `INSERT INTO agent_nodes (hotel_id, prompt, response, next_id, buttons)
-       VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-      [hotelId, prompt, response, next_id, buttons]
-    );
     res.json(rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to save node' });
+    res.status(500).json({ error: 'Failed to fetch agent' });
   }
 });
 
-router.delete('/:id', async (req, res) => {
-  const hotelId = req.user.hotel_id;
+// Create or update agent config. Superadmins may set ?hotel_id=XXX
+router.post('/', async (req, res) => {
+  const hotelId =
+    req.user.role === 'superadmin'
+      ? req.query.hotel_id || req.body.hotel_id || req.user.hotel_id
+      : req.user.hotel_id;
+  const { name, persona, language, greeting, flow } = req.body;
   try {
-    await db.query(
-      'DELETE FROM agent_nodes WHERE id = $1 AND hotel_id = $2',
-      [req.params.id, hotelId]
+    const { rows } = await db.query(
+      'SELECT id FROM agents WHERE hotel_id = $1',
+      [hotelId]
     );
-    res.json({ success: true });
+    if (rows.length) {
+      const result = await db.query(
+        `UPDATE agents
+         SET name=$1, persona=$2, language=$3, greeting=$4, flow=$5, updated_at=NOW()
+         WHERE hotel_id=$6 RETURNING *`,
+        [name, persona, language, greeting, flow, hotelId]
+      );
+      return res.json(result.rows[0]);
+    }
+    const insert = await db.query(
+      `INSERT INTO agents (hotel_id, name, persona, language, greeting, flow)
+       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+      [hotelId, name, persona, language, greeting, flow]
+    );
+    res.json(insert.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to delete node' });
+    res.status(500).json({ error: 'Failed to save agent' });
   }
 });
 

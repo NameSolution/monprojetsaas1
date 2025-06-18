@@ -228,19 +228,17 @@ class ApiService {
   }
 
   // Agent builder methods
-  async getAgentNodes() {
-    return this.request('/agents');
+  async getAgentConfig(hotelId) {
+    const url = hotelId ? `/agents?hotel_id=${hotelId}` : '/agents';
+    return this.request(url);
   }
 
-  async saveAgentNode(data) {
-    return this.request('/agents', {
+  async saveAgentConfig(data, hotelId) {
+    const url = hotelId ? `/agents?hotel_id=${hotelId}` : '/agents';
+    return this.request(url, {
       method: 'POST',
       body: data
     });
-  }
-
-  async deleteAgentNode(id) {
-    return this.request(`/agents/${id}`, { method: 'DELETE' });
   }
 }
 
