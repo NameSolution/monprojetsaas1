@@ -19,7 +19,7 @@ import {
   Settings as SettingsIcon,
   LifeBuoy,
   Menu,
-  Bot
+  Bot,
   List,
   History
 } from 'lucide-react';
