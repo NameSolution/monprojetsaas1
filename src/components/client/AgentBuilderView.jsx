@@ -6,7 +6,14 @@ import { useClientData } from '@/hooks/useClientData';
 
 const AgentBuilderView = () => {
   const { agentConfig, saveAgentConfig, knowledgeBase, updateKnowledgeBase, deleteKnowledgeItem, loading } = useClientData();
-  const [form, setForm] = useState({ name: '', persona: '', language: '', greeting: '' });
+  const [form, setForm] = useState({
+    name: '',
+    persona: '',
+    language: '',
+    greeting: '',
+    modules: [],
+    memoryVars: ''
+  });
   const [editingItem, setEditingItem] = useState(null);
   const [itemData, setItemData] = useState('');
 
@@ -16,13 +23,24 @@ const AgentBuilderView = () => {
         name: agentConfig.name || '',
         persona: agentConfig.persona || '',
         language: agentConfig.language || '',
-        greeting: agentConfig.greeting || ''
+        greeting: agentConfig.greeting || '',
+        modules: agentConfig.modules || [],
+        memoryVars: (agentConfig.memory_vars || []).join(',')
       });
     }
   }, [agentConfig]);
 
   const handleSave = async () => {
-    await saveAgentConfig({ ...form, flow: agentConfig?.flow || {} });
+    const payload = {
+      ...form,
+      memory_vars: form.memoryVars
+        .split(',')
+        .map(v => v.trim())
+        .filter(v => v),
+      modules: form.modules,
+      flow: agentConfig?.flow || {}
+    };
+    await saveAgentConfig(payload);
   };
 
   return (
@@ -34,6 +52,31 @@ const AgentBuilderView = () => {
           <Input placeholder="Persona" value={form.persona} onChange={e => setForm({ ...form, persona: e.target.value })} />
           <Input placeholder="Langue" value={form.language} onChange={e => setForm({ ...form, language: e.target.value })} />
           <Input placeholder="Message d'accueil" value={form.greeting} onChange={e => setForm({ ...form, greeting: e.target.value })} />
+          <div className="flex space-x-4">
+            {['weather','booking','menu','checkin'].map(mod => (
+              <label key={mod} className="flex items-center space-x-1 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.modules.includes(mod)}
+                  onChange={e => {
+                    const checked = e.target.checked;
+                    setForm(prev => ({
+                      ...prev,
+                      modules: checked
+                        ? [...prev.modules, mod]
+                        : prev.modules.filter(m => m !== mod)
+                    }));
+                  }}
+                />
+                <span>{mod}</span>
+              </label>
+            ))}
+          </div>
+          <Input
+            placeholder="Variables (ex: nom, date)"
+            value={form.memoryVars}
+            onChange={e => setForm({ ...form, memoryVars: e.target.value })}
+          />
           <Button onClick={handleSave} className="gradient-bg">Sauvegarder</Button>
         </div>
         <div className="dashboard-card p-4 rounded-xl">

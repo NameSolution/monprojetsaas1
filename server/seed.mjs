@@ -119,6 +119,8 @@ async function createTables() {
         language TEXT,
         greeting TEXT,
         flow JSONB,
+        modules JSONB,
+        memory_vars JSONB,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
@@ -199,6 +201,14 @@ async function seedDatabase() {
     ];
     for (const [c, d] of hotelCols) {
       await ensureColumn('hotels', c, d);
+    }
+
+    const agentCols = [
+      ['modules', 'JSONB'],
+      ['memory_vars', 'JSONB']
+    ];
+    for (const [c, d] of agentCols) {
+      await ensureColumn('agents', c, d);
     }
 
     const ticketCols = [
@@ -372,14 +382,16 @@ async function seedDatabase() {
       `);
 
       await db.query(`
-        INSERT INTO public.agents (hotel_id, name, persona, language, greeting, flow)
+        INSERT INTO public.agents (hotel_id, name, persona, language, greeting, flow, modules, memory_vars)
         VALUES (
           '550e8400-e29b-41d4-a716-446655440000',
           'Assistant Virtuel',
           'Vous êtes le réceptionniste virtuel du Demo Hotel.',
           'fr',
           'Bonjour et bienvenue au Demo Hotel !',
-          '{"start":{"id":"start","message":"Bonjour! Comment puis-je vous aider?","next":null}}'::jsonb
+          '{"start":{"id":"start","message":"Bonjour! Comment puis-je vous aider?","next":null}}'::jsonb,
+          '["weather","booking"]'::jsonb,
+          '["name","date"]'::jsonb
         )
         ON CONFLICT (hotel_id) DO NOTHING;
       `);

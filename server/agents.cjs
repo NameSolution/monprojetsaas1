@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
     req.user.role === 'superadmin'
       ? req.query.hotel_id || req.body.hotel_id || req.user.hotel_id
       : req.user.hotel_id;
-  const { name, persona, language, greeting, flow } = req.body;
+  const { name, persona, language, greeting, flow, modules, memory_vars } = req.body;
   try {
     const { rows } = await db.query(
       'SELECT id FROM agents WHERE hotel_id = $1',
@@ -38,16 +38,16 @@ router.post('/', async (req, res) => {
     if (rows.length) {
       const result = await db.query(
         `UPDATE agents
-         SET name=$1, persona=$2, language=$3, greeting=$4, flow=$5, updated_at=NOW()
-         WHERE hotel_id=$6 RETURNING *`,
-        [name, persona, language, greeting, flow, hotelId]
+         SET name=$1, persona=$2, language=$3, greeting=$4, flow=$5, modules=$6, memory_vars=$7, updated_at=NOW()
+         WHERE hotel_id=$8 RETURNING *`,
+        [name, persona, language, greeting, flow, modules, memory_vars, hotelId]
       );
       return res.json(result.rows[0]);
     }
     const insert = await db.query(
-      `INSERT INTO agents (hotel_id, name, persona, language, greeting, flow)
-       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-      [hotelId, name, persona, language, greeting, flow]
+      `INSERT INTO agents (hotel_id, name, persona, language, greeting, flow, modules, memory_vars)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [hotelId, name, persona, language, greeting, flow, modules, memory_vars]
     );
     res.json(insert.rows[0]);
   } catch (err) {
