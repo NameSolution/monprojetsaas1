@@ -1,6 +1,44 @@
 const express = require('express');
-const fetch = require('node-fetch');
 const db = require('./db.cjs');
+
+async function callLLM(messages, model) {
+  let settings = {};
+  try {
+    const { rows } = await db.query(
+      "SELECT key, value FROM settings WHERE key IN ('ai_api_url','ai_api_key','ai_model')"
+    );
+    settings = Object.fromEntries(rows.map(r => [r.key, r.value]));
+  } catch (err) {
+    console.error('Failed to load AI settings from DB:', err.message);
+  }
+  const endpoint = (settings.ai_api_url || process.env.AI_API_URL || 'http://localhost:11434/v1')
+    .replace(/\/?$/, '') +
+    '/chat/completions';
+  const key =
+    settings.ai_api_key ||
+    process.env.AI_API_KEY ||
+    process.env.OPENROUTER_API_KEY ||
+    '';
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(key ? { Authorization: `Bearer ${key}` } : {}),
+      ...(process.env.SITE_URL ? { 'HTTP-Referer': process.env.SITE_URL } : {}),
+      ...(process.env.SITE_NAME ? { 'X-Title': process.env.SITE_NAME } : {})
+    },
+    body: JSON.stringify({
+      model: model || settings.ai_model || process.env.AI_MODEL || 'phi3:mini',
+      messages
+    })
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => res.statusText);
+    throw new Error(`LLM request failed: ${res.status} ${text}`);
+  }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || '';
+}
 
 const router = express.Router();
 
@@ -8,7 +46,23 @@ const router = express.Router();
 router.get('/hotel/:slug', async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT id, name, theme_color, welcome_message, logo_url, default_lang_code FROM hotels WHERE slug = $1`,
+      `SELECT h.id,
+              COALESCE(c.name,h.name) AS name,
+              COALESCE(c.theme_color,h.theme_color) AS theme_color,
+              COALESCE(c.welcome_message,h.welcome_message) AS welcome_message,
+              COALESCE(c.logo_url,h.logo_url) AS logo_url,
+              COALESCE(c.default_language,h.default_lang_code) AS default_lang_code,
+              c.menu_items,
+              COALESCE(json_agg(json_build_object('code', hl.lang_code,
+                                          'name', l.name,
+                                          'active', hl.is_active))
+                  FILTER (WHERE hl.lang_code IS NOT NULL), '[]') AS languages
+         FROM hotels h
+         LEFT JOIN hotel_customizations c ON c.hotel_id = h.id
+         LEFT JOIN hotel_languages hl ON hl.hotel_id = h.id
+         LEFT JOIN languages l ON l.code = hl.lang_code
+        WHERE h.slug = $1
+        GROUP BY h.id, c.id`,
       [req.params.slug]
     );
     if (result.rows.length === 0) {
@@ -21,22 +75,70 @@ router.get('/hotel/:slug', async (req, res) => {
   }
 });
 
-// Forward question to AI model and store the interaction
+// Simple keyword extractor
+function extractKeywords(text) {
+  if (!text) return '';
+  const stop = new Set(['the','a','and','of','to','is','in','for','la','le','et','les','des','de','un','une']);
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .split(/\s+/)
+    .filter(w => w && !stop.has(w))
+    .slice(0, 5)
+    .join(',');
+}
+
+// Forward question to AI model and store the interaction with context
 router.post('/ask', async (req, res) => {
   const { hotel_id, session_id, lang, prompt } = req.body;
   try {
-    const aiRes = await fetch(process.env.AI_API_URL || 'http://localhost:3001/ask', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, lang, session_id, hotel_id })
-    });
-    const data = await aiRes.json().catch(() => ({ response: '' }));
-    const responseText = data.response || '';
+    const { rows: agentRows } = await db.query(
+      'SELECT persona, language, greeting, flow FROM agents WHERE hotel_id = $1',
+      [hotel_id]
+    );
+    const agent = agentRows[0] || {};
 
+    // Load knowledge base snippets for context
+    const { rows: knowledgeRows } = await db.query(
+      'SELECT info FROM knowledge_items WHERE hotel_id = $1 ORDER BY created_at DESC LIMIT 20',
+      [hotel_id]
+    );
+    const knowledge = knowledgeRows.map(r => r.info);
+
+    // Load last interactions for conversation memory
+    const { rows: historyRows } = await db.query(
+      `SELECT user_input, bot_response FROM interactions
+        WHERE hotel_id = $1 AND session_id = $2
+        ORDER BY timestamp ASC LIMIT 5`,
+      [hotel_id, session_id]
+    );
+
+    const systemParts = [];
+    if (agent.persona) systemParts.push(agent.persona);
+    systemParts.push(...knowledge);
+    const replyLang = lang || agent.language;
+    if (replyLang) {
+      systemParts.push(`Please answer in ${replyLang}`);
+    }
+
+    const messages = [
+      { role: 'system', content: systemParts.join('\n') },
+      ...historyRows.flatMap(h => [
+        { role: 'user', content: h.user_input },
+        { role: 'assistant', content: h.bot_response }
+      ])
+    ];
+    if (historyRows.length === 0 && agent.greeting) {
+      messages.push({ role: 'assistant', content: agent.greeting });
+    }
+    messages.push({ role: 'user', content: prompt });
+    const responseText = await callLLM(messages, process.env.AI_MODEL || 'phi3:mini');
+
+    const keywords = extractKeywords(prompt);
     const insert = await db.query(
-      `INSERT INTO interactions (hotel_id, session_id, lang_code, user_input, bot_response)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [hotel_id, session_id, lang, prompt, responseText]
+      `INSERT INTO interactions (hotel_id, session_id, lang_code, user_input, bot_response, keywords)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [hotel_id, session_id, lang, prompt, responseText, keywords]
     );
 
     res.json({ response: responseText, id: insert.rows[0].id });
@@ -50,10 +152,11 @@ router.post('/ask', async (req, res) => {
 router.post('/interactions', async (req, res) => {
   const { hotel_id, session_id, lang, input, output } = req.body;
   try {
+    const keywords = extractKeywords(input);
     const insert = await db.query(
-      `INSERT INTO interactions (hotel_id, session_id, lang_code, user_input, bot_response)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [hotel_id, session_id, lang, input, output]
+      `INSERT INTO interactions (hotel_id, session_id, lang_code, user_input, bot_response, keywords)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [hotel_id, session_id, lang, input, output, keywords]
     );
     res.json({ id: insert.rows[0].id });
   } catch (err) {

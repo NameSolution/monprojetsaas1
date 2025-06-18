@@ -7,6 +7,7 @@ export const useClientData = () => {
   const [analytics, setAnalytics] = useState({});
   const [supportTickets, setSupportTickets] = useState([]);
   const [knowledgeBase, setKnowledgeBase] = useState([]);
+  const [agentConfig, setAgentConfig] = useState(null);
   const [availableLanguages, setAvailableLanguages] = useState([]);
   const [hotelId, setHotelId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +29,12 @@ export const useClientData = () => {
           console.error('getAnalytics failed:', err);
           return {};
         });
+      const customizationPromise = apiService
+        .getCustomization()
+        .catch((err) => {
+          console.error('getCustomization failed:', err);
+          return null;
+        });
       const ticketsPromise = apiService
         .getSupportTickets()
         .catch((err) => {
@@ -40,12 +47,20 @@ export const useClientData = () => {
           console.error('getKnowledgeItems failed:', err);
           return [];
         });
+      const agentPromise = apiService
+        .getAgentConfig()
+        .catch((err) => {
+          console.error('getAgentConfig failed:', err);
+          return null;
+        });
 
-      const [hotelData, analyticsData, ticketsData, knowledgeData] = await Promise.all([
+      const [hotelData, analyticsData, customizationData, ticketsData, knowledgeData, agentData] = await Promise.all([
         hotelPromise,
         analyticsPromise,
+        customizationPromise,
         ticketsPromise,
         knowledgePromise,
+        agentPromise,
       ]);
 
       if (hotelData) {
@@ -57,13 +72,23 @@ export const useClientData = () => {
           notificationEmail: hotelData.contact_email,
           slug: hotelData.slug
         });
-        setCustomization({
-          name: hotelData.name,
-          welcomeMessage: hotelData.welcome_message,
-          primaryColor: hotelData.theme_color,
-          logoUrl: hotelData.logo_url,
-          defaultLanguage: hotelData.default_lang_code
-        });
+        if (customizationData) {
+          setCustomization({
+            name: customizationData.name,
+            welcomeMessage: customizationData.welcome_message,
+            primaryColor: customizationData.theme_color,
+            logoUrl: customizationData.logo_url,
+            defaultLanguage: customizationData.default_language || hotelData.default_lang_code
+          });
+        } else {
+          setCustomization({
+            name: hotelData.name,
+            welcomeMessage: hotelData.welcome_message,
+            primaryColor: hotelData.theme_color,
+            logoUrl: hotelData.logo_url,
+            defaultLanguage: hotelData.default_lang_code
+          });
+        }
         if (hotelData.languages) {
           setAvailableLanguages(hotelData.languages);
         }
@@ -72,6 +97,7 @@ export const useClientData = () => {
       setAnalytics(analyticsData || {});
       setSupportTickets(ticketsData || []);
       setKnowledgeBase(knowledgeData || []);
+      if (agentData) setAgentConfig(agentData);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -101,12 +127,12 @@ export const useClientData = () => {
   const updateCustomization = async (config) => {
     if (!hotelId) return null;
     try {
-      const updated = await apiService.updateHotel(hotelId, {
+      const updated = await apiService.updateCustomization({
         name: config.name,
         welcome_message: config.welcomeMessage,
         theme_color: config.primaryColor,
         logo_url: config.logoUrl,
-        default_lang_code: config.defaultLanguage
+        default_language: config.defaultLanguage
       });
       setCustomization(prev => ({ ...prev, ...config }));
       return updated;
@@ -119,7 +145,8 @@ export const useClientData = () => {
     if (!hotelId) return null;
     try {
       const updated = await apiService.updateHotel(hotelId, {
-        default_lang_code: defaultLang
+        default_lang_code: defaultLang,
+        languages: langs
       });
       setAvailableLanguages(langs);
       setCustomization(prev => ({ ...prev, defaultLanguage: defaultLang }));
@@ -186,6 +213,12 @@ export const useClientData = () => {
     }
   };
 
+  const saveAgentConfig = async (config) => {
+    const saved = await apiService.saveAgentConfig(config);
+    setAgentConfig(saved);
+    return saved;
+  };
+
   return {
     profile,
     customization,
@@ -203,6 +236,8 @@ export const useClientData = () => {
     createSupportTicket,
     updateKnowledgeBase,
     deleteKnowledgeItem,
+    agentConfig,
+    saveAgentConfig,
     refetch: fetchData
   };
 };

@@ -40,30 +40,31 @@ import apiService from '@/services/api';
 
 
 const TicketStatusBadge = ({ status }) => {
-  let variant;
-  switch (status?.toLowerCase()) {
-    case 'nouveau': variant = 'destructive'; break;
-    case 'en cours': variant = 'secondary'; break;
-    case 'résolu': variant = 'default'; break;
-    case 'fermé': variant = 'outline'; break;
-    default: variant = 'outline';
-  }
-  return <Badge variant={variant} className="capitalize">{status || 'Indéfini'}</Badge>;
+  const lower = (status || '').toLowerCase();
+  const colorMap = {
+    'nouveau': 'bg-blue-500 text-white',
+    'en cours': 'bg-orange-500 text-white',
+    'résolu': 'bg-green-600 text-white',
+  };
+  const classes = colorMap[lower] || 'bg-muted text-foreground';
+  return <Badge className={`capitalize ${classes}`}>{status || 'Indéfini'}</Badge>;
 };
 
 const SupportTicketsView = () => {
-  const { data: tickets, loading, updateTicket, setData: setGlobalTickets } = useSuperAdminData('supportTickets');
+  const { data: tickets, loading, updateSupportTicket, setData: setGlobalTickets } = useSuperAdminData('supportTickets');
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTicketData, setCurrentTicketData] = useState({ status: '', internal_notes: '' });
   const [ticketToDelete, setTicketToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [responseMessage, setResponseMessage] = useState('');
 
 
   const handleViewTicket = (ticket) => {
     setSelectedTicket(ticket);
     setCurrentTicketData({ status: ticket.status, internal_notes: ticket.internal_notes || '' });
+    setResponseMessage(ticket.admin_response || '');
     setIsModalOpen(true);
   };
 
@@ -71,12 +72,26 @@ const SupportTicketsView = () => {
     if (!selectedTicket) return;
     setIsUpdating(true);
     try {
-      await updateTicket(selectedTicket.id, { status: currentTicketData.status, internal_notes: currentTicketData.internal_notes });
+      await updateSupportTicket(selectedTicket.id, {
+        status: currentTicketData.status,
+        internal_notes: currentTicketData.internal_notes,
+      });
       setIsModalOpen(false);
     } catch (err) {
       toast({ variant: 'destructive', title: 'Erreur mise à jour', description: err.message });
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleSendResponse = async () => {
+    if (!selectedTicket) return;
+    try {
+      await apiService.replySupportTicket(selectedTicket.id, responseMessage);
+      setGlobalTickets(prev => prev.map(t => t.id === selectedTicket.id ? { ...t, admin_response: responseMessage } : t));
+      toast({ title: 'Réponse envoyée' });
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Erreur', description: err.message });
     }
   };
   
@@ -134,7 +149,7 @@ const SupportTicketsView = () => {
                     <td className="py-4 px-2 text-foreground font-medium">{ticket.title}</td>
                     <td className="py-4 px-2 text-muted-foreground">{ticket.submitter_name || 'N/A'}</td>
                     <td className="py-4 px-2 text-muted-foreground">{ticket.submitter_email}</td>
-                    <td className="py-4 px-2 text-muted-foreground">{ticket.hotels?.name || 'N/A'}</td>
+                    <td className="py-4 px-2 text-muted-foreground">{ticket.hotel_name || 'N/A'}</td>
                     <td className="py-4 px-2"><TicketStatusBadge status={ticket.status} /></td>
                     <td className="py-4 px-2 text-muted-foreground">{new Date(ticket.created_at).toLocaleDateString()}</td>
                     <td className="py-4 px-2">
@@ -181,7 +196,7 @@ const SupportTicketsView = () => {
                     <DialogDescription className="text-muted-foreground">
                         Demandé par {selectedTicket.submitter_name} ({selectedTicket.submitter_email})
                         {selectedTicket.submitter_phone && ` - Tel: ${selectedTicket.submitter_phone}`}
-                        {selectedTicket.hotels?.name && ` - Hôtel: ${selectedTicket.hotels.name}`}
+                        {selectedTicket.hotel_name && ` - Hôtel: ${selectedTicket.hotel_name}`}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4 space-y-4">
@@ -208,12 +223,22 @@ const SupportTicketsView = () => {
                     </div>
                     <div>
                         <Label htmlFor="internal-notes" className="text-foreground">Notes internes (optionnel):</Label>
-                        <Textarea 
-                            id="internal-notes" 
+                        <Textarea
+                            id="internal-notes"
                             value={currentTicketData.internal_notes || ''}
                             onChange={(e) => setCurrentTicketData(prev => ({...prev, internal_notes: e.target.value}))}
                             className="bg-secondary border-border text-foreground"
                             placeholder="Ajoutez des notes ici..."
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="response" className="text-foreground">Réponse au client:</Label>
+                        <Textarea
+                            id="response"
+                            value={responseMessage}
+                            onChange={(e) => setResponseMessage(e.target.value)}
+                            className="bg-secondary border-border text-foreground"
+                            placeholder="Votre message de réponse..."
                         />
                     </div>
                 </div>
@@ -221,6 +246,9 @@ const SupportTicketsView = () => {
                     <DialogClose asChild>
                         <Button variant="outline">Annuler</Button>
                     </DialogClose>
+                    <Button variant="secondary" onClick={handleSendResponse} disabled={!responseMessage.trim()}>
+                        Envoyer la réponse
+                    </Button>
                     <Button onClick={handleUpdateTicket} className="gradient-bg" disabled={isUpdating}>
                         <Save className="w-4 h-4 mr-2" />
                         {isUpdating ? "Sauvegarde..." : "Sauvegarder"}

@@ -31,12 +31,14 @@ const ChatbotInterface = () => {
   const [sessionId, setSessionId] = useState(null);
   const [interactionToRate, setInteractionToRate] = useState(null);
 
-  const availableLanguages = [
-    { code: 'fr', name: 'Français', flag: 'flag-fr' },
-    { code: 'en', name: 'English', flag: 'flag-en' },
-    { code: 'es', name: 'Español', flag: 'flag-es' },
-    { code: 'de', name: 'Deutsch', flag: 'flag-de' },
+  const fallbackLanguages = [
+    { code: 'fr', name: 'Français', flag: 'flag-fr', active: true },
+    { code: 'en', name: 'English', flag: 'flag-en', active: true },
+    { code: 'es', name: 'Español', flag: 'flag-es', active: false },
+    { code: 'it', name: 'Italiano', flag: 'flag-it', active: false },
+    { code: 'de', name: 'Deutsch', flag: 'flag-de', active: false },
   ];
+  const [availableLanguages, setAvailableLanguages] = useState(fallbackLanguages);
 
   const generateId = () => {
     if (crypto.randomUUID) {
@@ -68,7 +70,13 @@ const ChatbotInterface = () => {
             toast({variant: "destructive", title: "Erreur", description: "Configuration du chatbot introuvable."});
             setHotelConfig(prev => ({...prev, id: null, name: "Chatbot Indisponible", welcomeMessage: "Ce chatbot n'est pas configuré."}));
         } else {
-            const defaultLang = availableLanguages.find(l => l.code === config.defaultLanguage) || availableLanguages[0];
+            const langs = Array.isArray(config.languages) && config.languages.length > 0 ? config.languages : fallbackLanguages;
+            const mapped = langs.map(l => ({
+              ...l,
+              flag: l.flag || `flag-${l.code}`
+            }));
+            setAvailableLanguages(mapped);
+            const defaultLang = mapped.find(l => l.code === config.defaultLanguage) || mapped[0];
             setHotelConfig({
                 id: config.id,
                 name: config.name || 'Assistant Hôtelier',
@@ -76,6 +84,7 @@ const ChatbotInterface = () => {
                 welcomeMessage: config.welcomeMessage || 'Bonjour ! Comment puis-je vous aider ?',
                 logoUrl: config.logoUrl,
                 defaultLanguage: defaultLang.code,
+                menuItems: config.menu_items || []
             });
             setCurrentLanguage(defaultLang);
         }
@@ -86,11 +95,15 @@ const ChatbotInterface = () => {
 
   useEffect(() => {
     if (!loadingConfig && hotelConfig.welcomeMessage && hotelConfig.id) {
-      setMessages([]); 
+      setMessages([]);
       setIsTyping(true);
       setTimeout(() => {
         const welcomeText = typeof hotelConfig.welcomeMessage === 'string' ? hotelConfig.welcomeMessage : (hotelConfig.welcomeMessage[currentLanguage.code] || hotelConfig.welcomeMessage['fr'] || "Bienvenue !");
-        setMessages([{ type: 'bot', text: welcomeText, id: `bot-welcome-${Date.now()}` }]);
+        const msgs = [{ type: 'bot', text: welcomeText, id: `bot-welcome-${Date.now()}` }];
+        if (hotelConfig.menuItems && hotelConfig.menuItems.length > 0) {
+          msgs.push({ type: 'bot-menu', menuItems: hotelConfig.menuItems, id: `bot-menu-${Date.now()}` });
+        }
+        setMessages(msgs);
         setIsTyping(false);
       }, 500);
     } else if (!loadingConfig && !hotelConfig.id) {
@@ -210,7 +223,7 @@ const ChatbotInterface = () => {
                         exit={{ opacity: 0, y: -10 }}
                         className="absolute right-0 top-12 w-48 bg-card/90 backdrop-blur-md rounded-lg p-2 z-10 border border-border shadow-lg"
                     >
-                        {availableLanguages.map(lang => (
+                        {availableLanguages.filter(l => l.active !== false).map(lang => (
                             <button key={lang.code} onClick={() => selectLanguage(lang)} className={`w-full flex items-center space-x-2 p-2 text-foreground hover:bg-accent rounded-md text-sm ${currentLanguage.code === lang.code ? 'bg-accent font-semibold' : ''}`}>
                                 <span className={`language-flag ${lang.flag}`}></span>
                                 <span>{lang.name}</span>
@@ -221,6 +234,8 @@ const ChatbotInterface = () => {
             </AnimatePresence>
           </div>
         </div>
+
+
 
         <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-hide">
           <AnimatePresence>
@@ -233,7 +248,7 @@ const ChatbotInterface = () => {
                 transition={{ duration: 0.3 }}
                 className={`flex items-end gap-2 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                {message.type === 'bot' && (
+                {message.type.startsWith('bot') && (
                      hotelConfig.logoUrl ?
                      <img src={hotelConfig.logoUrl} alt="Bot" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                      : <Bot className="w-8 h-8 text-muted-foreground flex-shrink-0" />
@@ -246,7 +261,23 @@ const ChatbotInterface = () => {
                   }`}
                    style={message.type === 'user' ? { backgroundColor: hotelConfig.primaryColor, color: 'hsl(var(--primary-foreground))' } : {}}
                 >
-                  <p className="text-sm">{message.text}</p>
+                  {message.type === 'bot-menu' ? (
+                    <div className="flex flex-wrap gap-2">
+                      {message.menuItems.map((item, idx) => (
+                        <a
+                          key={idx}
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline text-sm block"
+                        >
+                          {item.label}
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm">{message.text}</p>
+                  )}
                 </div>
                 {message.type === 'user' && <User className="w-8 h-8 text-muted-foreground flex-shrink-0" />}
               </motion.div>

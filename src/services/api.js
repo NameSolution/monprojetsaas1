@@ -65,8 +65,16 @@ class ApiService {
     return this.request('/hotels');
   }
 
+  async getClients() {
+    return this.request('/clients');
+  }
+
   async getMyHotel() {
     return this.request('/hotels/my-hotel');
+  }
+
+  async getCustomization() {
+    return this.request('/customization');
   }
 
   async createHotel(hotelData) {
@@ -83,6 +91,25 @@ class ApiService {
     });
   }
 
+  async updateCustomization(data) {
+    return this.request('/customization', {
+      method: 'PUT',
+      body: data,
+    });
+  }
+
+  // Settings methods
+  async getAISettings() {
+    return this.request('/settings/ai');
+  }
+
+  async updateAISettings(data) {
+    return this.request('/settings/ai', {
+      method: 'PUT',
+      body: data,
+    });
+  }
+
   async deleteHotel(id) {
     return this.request(`/hotels/${id}`, {
       method: 'DELETE',
@@ -91,7 +118,7 @@ class ApiService {
 
   // Analytics methods
   async getAnalytics() {
-    return this.request('/analytics/overview');
+    return this.request('/analytics');
   }
 
   // Support methods
@@ -116,6 +143,13 @@ class ApiService {
   async deleteSupportTicket(id) {
     return this.request(`/support/tickets/${id}`, {
       method: 'DELETE'
+    });
+  }
+
+  async replySupportTicket(id, message) {
+    return this.request(`/support/tickets/${id}/reply`, {
+      method: 'POST',
+      body: { message },
     });
   }
 
@@ -190,6 +224,20 @@ class ApiService {
   async deleteKnowledgeItem(id) {
     return this.request(`/knowledge/${id}`, {
       method: 'DELETE'
+    });
+  }
+
+  // Agent builder methods
+  async getAgentConfig(hotelId) {
+    const url = hotelId ? `/agents?hotel_id=${hotelId}` : '/agents';
+    return this.request(url);
+  }
+
+  async saveAgentConfig(data, hotelId) {
+    const url = hotelId ? `/agents?hotel_id=${hotelId}` : '/agents';
+    return this.request(url, {
+      method: 'POST',
+      body: data
     });
   }
 }

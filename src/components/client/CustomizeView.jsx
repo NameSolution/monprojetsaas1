@@ -18,7 +18,8 @@ const CustomizeView = () => {
         welcomeMessage: '',
         primaryColor: '#2563EB',
         logoUrl: null,
-        logoFile: null 
+        logoFile: null,
+        // menuItems removed
     });
     const [logoPreview, setLogoPreview] = useState(null);
 
@@ -57,6 +58,7 @@ const CustomizeView = () => {
             toast({ title: "Logo sélectionné", description: file.name });
         }
     };
+
     
     const handleSaveChanges = async () => {
         await updateCustomization(chatbotConfig);
@@ -155,6 +157,7 @@ const CustomizeView = () => {
                                 </div>
                             </div>
 
+
                             <Button 
                                 className="gradient-bg w-full"
                                 onClick={handleSaveChanges}
@@ -184,6 +187,7 @@ const CustomizeView = () => {
                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                 </div>
                             </div>
+
 
                             <div className="space-y-3 mb-4 h-32 overflow-y-auto">
                                 <div className="bg-secondary p-3 rounded-lg text-sm text-foreground">

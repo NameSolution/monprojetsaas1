@@ -12,18 +12,19 @@ import {
   Bell,
   Search,
   LayoutDashboard,
-  Hotel,
   Users,
   BarChart3,
   CreditCard,
   Server,
-  Settings as SettingsIcon, 
-  LifeBuoy 
+  Settings as SettingsIcon,
+  LifeBuoy,
+  Menu,
+  Bot
 } from 'lucide-react';
 
 const SuperAdminDashboardView = lazy(() => import('@/components/superadmin/SuperAdminDashboardView'));
-const HotelsView = lazy(() => import('@/components/superadmin/HotelsView'));
-const UsersView = lazy(() => import('@/components/superadmin/UsersView'));
+const ClientsView = lazy(() => import('@/components/superadmin/ClientsView'));
+const AgentFlowEditor = lazy(() => import('@/components/superadmin/AgentFlowEditor'));
 const SystemView = lazy(() => import('@/components/superadmin/SystemView'));
 const SuperAdminAnalyticsView = lazy(() => import('@/components/superadmin/AnalyticsView'));
 const SuperAdminBillingView = lazy(() => import('@/components/superadmin/BillingView'));
@@ -41,8 +42,17 @@ const SuperAdminDashboard = () => {
   const navigate = useNavigate();
   const { user, logout, loading: authLoading } = useAuth();
   const { data: supportTicketsData, loading: ticketsLoading } = useSuperAdminData('supportTickets');
-  const [notifications, setNotifications] = useState(0); 
+  const [notifications, setNotifications] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? 'hidden' : 'auto';
+  }, [sidebarOpen]);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!ticketsLoading && supportTicketsData) {
@@ -54,7 +64,7 @@ const SuperAdminDashboard = () => {
 
   const getActiveTab = () => {
     const path = location.pathname.split('/').pop();
-    if (['hotels', 'users', 'analytics', 'billing', 'system', 'settings', 'support-tickets'].includes(path)) {
+    if (['clients', 'agent-builder', 'analytics', 'billing', 'system', 'settings', 'support-tickets'].includes(path)) {
       return path;
     }
     return 'dashboard';
@@ -78,41 +88,53 @@ const SuperAdminDashboard = () => {
   };
 
   const Sidebar = () => (
-    <div className="w-64 sidebar-nav h-screen fixed left-0 top-0 p-6 flex flex-col">
-      <div className="flex items-center space-x-2 mb-8">
-        <Shield className="w-8 h-8 text-purple-500" />
-        <span className="text-xl font-bold gradient-text">Super Admin</span>
+    <div
+      className={`w-64 sidebar-nav h-screen fixed left-0 top-0 p-6 flex flex-col z-50 transform md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+    >
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center space-x-2">
+          <Shield className="w-8 h-8 text-purple-500" />
+          <span className="text-xl font-bold gradient-text">Super Admin</span>
+        </div>
+        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSidebarOpen(false)}>
+          <span className="sr-only">Fermer</span>
+          ✕
+        </Button>
       </div>
 
       <nav className="space-y-2 flex-grow">
         {[
           { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/superadmin' },
-          { id: 'hotels', icon: Hotel, label: 'Gestion Hôtels', path: '/superadmin/hotels' },
-          { id: 'users', icon: Users, label: 'Utilisateurs', path: '/superadmin/users' },
+          { id: 'clients', icon: Users, label: 'Hôtels & Utilisateurs', path: '/superadmin/clients' },
+          { id: 'agent-builder', icon: Bot, label: 'Agent Builder', path: '/superadmin/agent-builder' },
           { id: 'support-tickets', icon: LifeBuoy, label: 'Support Tickets', path: '/superadmin/support-tickets', badge: notifications > 0 ? notifications : null },
           { id: 'analytics', icon: BarChart3, label: 'Analytics', path: '/superadmin/analytics' },
           { id: 'billing', icon: CreditCard, label: 'Facturation', path: '/superadmin/billing' },
           { id: 'system', icon: Server, label: 'Système IA', path: '/superadmin/system' },
           { id: 'settings', icon: SettingsIcon, label: 'Paramètres', path: '/superadmin/settings' }
-        ].map((item) => (
-          <Link
-            key={item.id}
-            to={item.path}
-            className={`nav-item w-full flex items-center justify-between space-x-3 px-4 py-3 rounded-lg text-left ${
-              getActiveTab() === item.id ? 'active' : ''
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-              <item.icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </div>
-            {item.badge && (
-              <span className="bg-destructive text-destructive-foreground text-xs font-bold px-2 py-0.5 rounded-full">
-                {item.badge}
-              </span>
-            )}
-          </Link>
-        ))}
+        ].map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.id}
+              to={item.path}
+              onClick={() => setSidebarOpen(false)}
+              className={`nav-item w-full flex items-center justify-between space-x-3 px-4 py-3 rounded-lg text-left ${
+                getActiveTab() === item.id ? 'active' : ''
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <Icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </div>
+              {item.badge && (
+                <span className="bg-destructive text-destructive-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
       <div>
@@ -170,19 +192,28 @@ const SuperAdminDashboard = () => {
   if (authLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><p className="text-foreground">Chargement du dashboard Super Admin...</p></div>;
   }
-  
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="ml-64">
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+      <button
+        className={`md:hidden fixed top-4 left-4 z-50 bg-primary text-primary-foreground p-2 rounded-md ${sidebarOpen ? 'hidden' : ''}`}
+        onClick={() => setSidebarOpen(true)}
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+      <div className="md:ml-64">
         <Header />
         <main className="p-6">
            <AnimatePresence mode="wait">
             <Suspense fallback={<LoadingViewFallback />}>
                 <Routes location={location} key={location.pathname}>
                 <Route index element={<SuperAdminDashboardView />} />
-                <Route path="hotels" element={<HotelsView />} />
-                <Route path="users" element={<UsersView />} />
+                <Route path="clients" element={<ClientsView />} />
+                <Route path="agent-builder" element={<AgentFlowEditor />} />
                 <Route path="support-tickets" element={<SupportTicketsView />} />
                 <Route path="system" element={<SystemView />} />
                 <Route path="analytics" element={<SuperAdminAnalyticsView />} />
