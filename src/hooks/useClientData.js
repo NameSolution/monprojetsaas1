@@ -70,8 +70,7 @@ export const useClientData = () => {
             welcomeMessage: customizationData.welcome_message,
             primaryColor: customizationData.theme_color,
             logoUrl: customizationData.logo_url,
-            defaultLanguage: customizationData.default_language || hotelData.default_lang_code,
-            menuItems: customizationData.menu_items || []
+            defaultLanguage: customizationData.default_language || hotelData.default_lang_code
           });
         } else {
           setCustomization({
@@ -79,8 +78,7 @@ export const useClientData = () => {
             welcomeMessage: hotelData.welcome_message,
             primaryColor: hotelData.theme_color,
             logoUrl: hotelData.logo_url,
-            defaultLanguage: hotelData.default_lang_code,
-            menuItems: []
+            defaultLanguage: hotelData.default_lang_code
           });
         }
         if (hotelData.languages) {
@@ -125,8 +123,7 @@ export const useClientData = () => {
         welcome_message: config.welcomeMessage,
         theme_color: config.primaryColor,
         logo_url: config.logoUrl,
-        default_language: config.defaultLanguage,
-        menu_items: config.menuItems
+        default_language: config.defaultLanguage
       });
       setCustomization(prev => ({ ...prev, ...config }));
       return updated;

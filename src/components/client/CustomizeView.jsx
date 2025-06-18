@@ -19,7 +19,7 @@ const CustomizeView = () => {
         primaryColor: '#2563EB',
         logoUrl: null,
         logoFile: null,
-        menuItems: []
+        // menuItems removed
     });
     const [logoPreview, setLogoPreview] = useState(null);
 
@@ -30,8 +30,7 @@ const CustomizeView = () => {
                 name: initialCustomization.name || 'Assistant Virtuel',
                 welcomeMessage: initialCustomization.welcomeMessage || 'Bonjour ! Comment puis-je vous aider ?',
                 primaryColor: initialCustomization.primaryColor || '#2563EB',
-                logoUrl: initialCustomization.logoUrl || null,
-                menuItems: initialCustomization.menuItems || []
+                logoUrl: initialCustomization.logoUrl || null
             }));
             if (initialCustomization.logoUrl) {
                 setLogoPreview(initialCustomization.logoUrl);
@@ -60,26 +59,6 @@ const CustomizeView = () => {
         }
     };
 
-    const addMenuItem = () => {
-        setChatbotConfig(prev => ({
-            ...prev,
-            menuItems: [...prev.menuItems, { label: '', url: '' }]
-        }));
-    };
-
-    const updateMenuItem = (index, field, value) => {
-        setChatbotConfig(prev => ({
-            ...prev,
-            menuItems: prev.menuItems.map((item, i) => i === index ? { ...item, [field]: value } : item)
-        }));
-    };
-
-    const removeMenuItem = (index) => {
-        setChatbotConfig(prev => ({
-            ...prev,
-            menuItems: prev.menuItems.filter((_, i) => i !== index)
-        }));
-    };
     
     const handleSaveChanges = async () => {
         await updateCustomization(chatbotConfig);
@@ -178,27 +157,6 @@ const CustomizeView = () => {
                                 </div>
                             </div>
 
-                            <div>
-                                <Label className="text-foreground">Menu de navigation</Label>
-                                {chatbotConfig.menuItems.map((item, idx) => (
-                                    <div key={idx} className="flex space-x-2 mt-2">
-                                        <Input
-                                            placeholder="Titre"
-                                            value={item.label}
-                                            onChange={e => updateMenuItem(idx, 'label', e.target.value)}
-                                            className="bg-secondary border-border text-foreground flex-1"
-                                        />
-                                        <Input
-                                            placeholder="URL"
-                                            value={item.url}
-                                            onChange={e => updateMenuItem(idx, 'url', e.target.value)}
-                                            className="bg-secondary border-border text-foreground flex-1"
-                                        />
-                                        <Button type="button" variant="outline" onClick={() => removeMenuItem(idx)}>-</Button>
-                                    </div>
-                                ))}
-                                <Button type="button" variant="outline" size="sm" className="mt-2" onClick={addMenuItem}>Ajouter un lien</Button>
-                            </div>
 
                             <Button 
                                 className="gradient-bg w-full"
@@ -230,13 +188,6 @@ const CustomizeView = () => {
                                 </div>
                             </div>
 
-                            {chatbotConfig.menuItems.length > 0 && (
-                                <div className="mb-4 flex space-x-2 overflow-x-auto">
-                                    {chatbotConfig.menuItems.map((item, idx) => (
-                                        <span key={idx} className="text-xs underline" style={{color: chatbotConfig.primaryColor}}>{item.label || 'Lien'}</span>
-                                    ))}
-                                </div>
-                            )}
 
                             <div className="space-y-3 mb-4 h-32 overflow-y-auto">
                                 <div className="bg-secondary p-3 rounded-lg text-sm text-foreground">

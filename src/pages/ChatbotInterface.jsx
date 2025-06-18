@@ -87,11 +87,15 @@ const ChatbotInterface = () => {
 
   useEffect(() => {
     if (!loadingConfig && hotelConfig.welcomeMessage && hotelConfig.id) {
-      setMessages([]); 
+      setMessages([]);
       setIsTyping(true);
       setTimeout(() => {
         const welcomeText = typeof hotelConfig.welcomeMessage === 'string' ? hotelConfig.welcomeMessage : (hotelConfig.welcomeMessage[currentLanguage.code] || hotelConfig.welcomeMessage['fr'] || "Bienvenue !");
-        setMessages([{ type: 'bot', text: welcomeText, id: `bot-welcome-${Date.now()}` }]);
+        const msgs = [{ type: 'bot', text: welcomeText, id: `bot-welcome-${Date.now()}` }];
+        if (hotelConfig.menuItems && hotelConfig.menuItems.length > 0) {
+          msgs.push({ type: 'bot-menu', menuItems: hotelConfig.menuItems, id: `bot-menu-${Date.now()}` });
+        }
+        setMessages(msgs);
         setIsTyping(false);
       }, 500);
     } else if (!loadingConfig && !hotelConfig.id) {
@@ -223,15 +227,7 @@ const ChatbotInterface = () => {
           </div>
         </div>
 
-        {hotelConfig.menuItems && hotelConfig.menuItems.length > 0 && (
-          <div className="overflow-x-auto whitespace-nowrap p-2 border-b border-border" style={{backgroundColor: hotelConfig.primaryColor}}>
-            {hotelConfig.menuItems.map((item, idx) => (
-              <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary-foreground text-sm mr-4 hover:underline">
-                {item.label}
-              </a>
-            ))}
-          </div>
-        )}
+
 
         <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-hide">
           <AnimatePresence>
@@ -244,7 +240,7 @@ const ChatbotInterface = () => {
                 transition={{ duration: 0.3 }}
                 className={`flex items-end gap-2 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                {message.type === 'bot' && (
+                {message.type.startsWith('bot') && (
                      hotelConfig.logoUrl ?
                      <img src={hotelConfig.logoUrl} alt="Bot" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                      : <Bot className="w-8 h-8 text-muted-foreground flex-shrink-0" />
@@ -257,7 +253,23 @@ const ChatbotInterface = () => {
                   }`}
                    style={message.type === 'user' ? { backgroundColor: hotelConfig.primaryColor, color: 'hsl(var(--primary-foreground))' } : {}}
                 >
-                  <p className="text-sm">{message.text}</p>
+                  {message.type === 'bot-menu' ? (
+                    <div className="flex flex-wrap gap-2">
+                      {message.menuItems.map((item, idx) => (
+                        <a
+                          key={idx}
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline text-sm block"
+                        >
+                          {item.label}
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm">{message.text}</p>
+                  )}
                 </div>
                 {message.type === 'user' && <User className="w-8 h-8 text-muted-foreground flex-shrink-0" />}
               </motion.div>
