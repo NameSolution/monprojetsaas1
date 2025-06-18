@@ -228,19 +228,15 @@ class ApiService {
   }
 
   // Agent builder methods
-  async getAgentNodes() {
+  async getAgentConfig() {
     return this.request('/agents');
   }
 
-  async saveAgentNode(data) {
+  async saveAgentConfig(data) {
     return this.request('/agents', {
       method: 'POST',
       body: data
     });
-  }
-
-  async deleteAgentNode(id) {
-    return this.request(`/agents/${id}`, { method: 'DELETE' });
   }
 }
 

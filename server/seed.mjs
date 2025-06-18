@@ -112,16 +112,17 @@ async function createTables() {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      CREATE TABLE IF NOT EXISTS public.agent_nodes (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id INT NOT NULL DEFAULT 1,
-        hotel_id UUID REFERENCES public.hotels(id),
-        prompt TEXT,
-        response TEXT,
-        next_id UUID,
+      CREATE TABLE IF NOT EXISTS public.agents (
+        hotel_id UUID PRIMARY KEY REFERENCES public.hotels(id),
+        name TEXT,
+        persona TEXT,
+        language TEXT,
+        greeting TEXT,
+        flow JSONB,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
 
       CREATE TABLE IF NOT EXISTS public.support_tickets (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -181,7 +182,6 @@ async function seedDatabase() {
     await ensureColumn('interactions', 'timestamp', 'TIMESTAMPTZ DEFAULT NOW()');
     await ensureColumn('interactions', 'session_id', 'UUID');
     await ensureColumn('interactions', 'keywords', 'TEXT');
-    await ensureColumn('agent_nodes', 'buttons', 'JSONB');
 
     const hotelCols = [
       ['plan_id', 'UUID'],
@@ -215,12 +215,9 @@ async function seedDatabase() {
 
     await ensureSetting(
       'ai_api_url',
-      process.env.AI_API_URL || 'https://openrouter.ai/api/v1'
+      process.env.AI_API_URL || 'http://localhost:11434/v1'
     );
-    await ensureSetting(
-      'ai_api_key',
-      process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || ''
-    );
+    await ensureSetting('ai_api_key', process.env.AI_API_KEY || '');
 
     console.log('🚀 Début du seed de la base…');
 
@@ -375,10 +372,16 @@ async function seedDatabase() {
       `);
 
       await db.query(`
-        INSERT INTO public.agent_nodes (tenant_id, hotel_id, prompt, response, next_id)
-        VALUES
-          (1, '550e8400-e29b-41d4-a716-446655440000', 'salutation', 'Bonjour et bienvenue au Demo Hotel !', NULL)
-        ON CONFLICT DO NOTHING;
+        INSERT INTO public.agents (hotel_id, name, persona, language, greeting, flow)
+        VALUES (
+          '550e8400-e29b-41d4-a716-446655440000',
+          'Assistant Virtuel',
+          'Vous êtes le réceptionniste virtuel du Demo Hotel.',
+          'fr',
+          'Bonjour et bienvenue au Demo Hotel !',
+          '{"start":{"id":"start","message":"Bonjour! Comment puis-je vous aider?","next":null}}'::jsonb
+        )
+        ON CONFLICT (hotel_id) DO NOTHING;
       `);
     }
 

@@ -92,6 +92,12 @@ function extractKeywords(text) {
 router.post('/ask', async (req, res) => {
   const { hotel_id, session_id, lang, prompt } = req.body;
   try {
+    const { rows: agentRows } = await db.query(
+      'SELECT persona, language, greeting, flow FROM agents WHERE hotel_id = $1',
+      [hotel_id]
+    );
+    const agent = agentRows[0] || {};
+
     // Load knowledge base snippets for context
     const { rows: knowledgeRows } = await db.query(
       'SELECT info FROM knowledge_items WHERE hotel_id = $1 ORDER BY created_at DESC LIMIT 20',
@@ -107,9 +113,12 @@ router.post('/ask', async (req, res) => {
       [hotel_id, session_id]
     );
 
-    const systemParts = [...knowledge];
-    if (lang) {
-      systemParts.push(`Please answer in ${lang}`);
+    const systemParts = [];
+    if (agent.persona) systemParts.push(agent.persona);
+    systemParts.push(...knowledge);
+    const replyLang = lang || agent.language;
+    if (replyLang) {
+      systemParts.push(`Please answer in ${replyLang}`);
     }
 
     const messages = [
@@ -117,9 +126,12 @@ router.post('/ask', async (req, res) => {
       ...historyRows.flatMap(h => [
         { role: 'user', content: h.user_input },
         { role: 'assistant', content: h.bot_response }
-      ]),
-      { role: 'user', content: prompt }
+      ])
     ];
+    if (historyRows.length === 0 && agent.greeting) {
+      messages.push({ role: 'assistant', content: agent.greeting });
+    }
+    messages.push({ role: 'user', content: prompt });
     const responseText = await callLLM(messages, process.env.AI_MODEL || 'phi3:mini');
 
     const keywords = extractKeywords(prompt);
