@@ -1,6 +1,33 @@
 const express = require('express');
-const fetch = require('node-fetch');
 const db = require('./db.cjs');
+
+let openai;
+async function getOpenAI() {
+  if (!openai) {
+    const { default: OpenAI } = await import('openai');
+    let url = process.env.AI_API_URL || 'https://openrouter.ai/api/v1';
+    let key = process.env.OPENROUTER_API_KEY || process.env.AI_API_KEY || '';
+    try {
+      const { rows } = await db.query(
+        "SELECT key, value FROM settings WHERE key IN ('ai_api_url','ai_api_key')"
+      );
+      const map = Object.fromEntries(rows.map(r => [r.key, r.value]));
+      if (map.ai_api_url) url = map.ai_api_url;
+      if (map.ai_api_key) key = map.ai_api_key;
+    } catch (err) {
+      console.warn('Failed to load AI settings from DB:', err.message);
+    }
+    openai = new OpenAI({
+      baseURL: url,
+      apiKey: key,
+      defaultHeaders: {
+        'HTTP-Referer': 'https://votresite.com',
+        'X-Title': 'HotelBot AI',
+      },
+    });
+  }
+  return openai;
+}
 
 const router = express.Router();
 
@@ -21,22 +48,58 @@ router.get('/hotel/:slug', async (req, res) => {
   }
 });
 
-// Forward question to AI model and store the interaction
+// Simple keyword extractor
+function extractKeywords(text) {
+  if (!text) return '';
+  const stop = new Set(['the','a','and','of','to','is','in','for','la','le','et','les','des','de','un','une']);
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .split(/\s+/)
+    .filter(w => w && !stop.has(w))
+    .slice(0, 5)
+    .join(',');
+}
+
+// Forward question to AI model and store the interaction with context
 router.post('/ask', async (req, res) => {
   const { hotel_id, session_id, lang, prompt } = req.body;
   try {
-    const aiRes = await fetch(process.env.AI_API_URL || 'http://localhost:3001/ask', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, lang, session_id, hotel_id })
-    });
-    const data = await aiRes.json().catch(() => ({ response: '' }));
-    const responseText = data.response || '';
+    // Load knowledge base snippets for context
+    const { rows: knowledgeRows } = await db.query(
+      'SELECT info FROM knowledge_items WHERE hotel_id = $1 ORDER BY created_at DESC LIMIT 20',
+      [hotel_id]
+    );
+    const knowledge = knowledgeRows.map(r => r.info);
 
+    // Load last interactions for conversation memory
+    const { rows: historyRows } = await db.query(
+      `SELECT user_input, bot_response FROM interactions
+        WHERE hotel_id = $1 AND session_id = $2
+        ORDER BY timestamp ASC LIMIT 5`,
+      [hotel_id, session_id]
+    );
+
+    const client = await getOpenAI();
+    const messages = [
+      { role: 'system', content: knowledge.join('\n') },
+      ...historyRows.flatMap(h => [
+        { role: 'user', content: h.user_input },
+        { role: 'assistant', content: h.bot_response }
+      ]),
+      { role: 'user', content: prompt }
+    ];
+    const completion = await client.chat.completions.create({
+      model: process.env.AI_MODEL || 'google/gemma-3n-e4b-it:free',
+      messages
+    });
+    const responseText = completion.choices?.[0]?.message?.content || '';
+
+    const keywords = extractKeywords(prompt);
     const insert = await db.query(
-      `INSERT INTO interactions (hotel_id, session_id, lang_code, user_input, bot_response)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [hotel_id, session_id, lang, prompt, responseText]
+      `INSERT INTO interactions (hotel_id, session_id, lang_code, user_input, bot_response, keywords)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [hotel_id, session_id, lang, prompt, responseText, keywords]
     );
 
     res.json({ response: responseText, id: insert.rows[0].id });
@@ -50,10 +113,11 @@ router.post('/ask', async (req, res) => {
 router.post('/interactions', async (req, res) => {
   const { hotel_id, session_id, lang, input, output } = req.body;
   try {
+    const keywords = extractKeywords(input);
     const insert = await db.query(
-      `INSERT INTO interactions (hotel_id, session_id, lang_code, user_input, bot_response)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [hotel_id, session_id, lang, input, output]
+      `INSERT INTO interactions (hotel_id, session_id, lang_code, user_input, bot_response, keywords)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [hotel_id, session_id, lang, input, output, keywords]
     );
     res.json({ id: insert.rows[0].id });
   } catch (err) {

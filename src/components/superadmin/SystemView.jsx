@@ -3,36 +3,40 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Cpu, HardDrive, Clock, Save, Download, Upload } from 'lucide-react';
+import { Save, Download, Upload } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea'; // Assuming you have this shadcn component
-import { Slider } from '@/components/ui/slider'; // Assuming you have this shadcn component
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
+import { useSuperAdminData } from '@/hooks/useSuperAdminData';
 
 const SystemView = () => {
-    const [cpuData, setCpuData] = useState(Array.from({ length: 10 }, (_, i) => ({ name: `-${9 - i}s`, usage: Math.floor(Math.random() * (60 - 20) + 20) })));
-    const [currentCpuUsage, setCurrentCpuUsage] = useState(cpuData[cpuData.length - 1].usage);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const newUsage = Math.floor(Math.random() * (60 - 20) + 20);
-            setCurrentCpuUsage(newUsage);
-            setCpuData(prevData => {
-                const newData = [...prevData.slice(1), { name: '0s', usage: newUsage }];
-                return newData.map((d, i) => ({ ...d, name: `-${9 - i}s` }));
-            });
-        }, 2000);
-        return () => clearInterval(interval);
-    }, []);
-
+    const { fetchAISettings, saveAISettings } = useSuperAdminData();
 
     const [settings, setSettings] = useState({
-        systemPrompt: "Tu es un assistant virtuel pour un hôtel. Sois concis, poli et professionnel. Ne réponds qu'aux questions relatives à l'hôtel.",
+        systemPrompt: '',
         temperature: 0.5,
+        apiUrl: '',
+        apiKey: ''
     });
 
-    const handleSaveConfig = () => {
-        toast({ title: "Configuration sauvegardée", description: "Les paramètres de l'IA ont été mis à jour." });
+    useEffect(() => {
+        fetchAISettings().then(res => {
+            setSettings(prev => ({
+                ...prev,
+                apiUrl: res.ai_api_url,
+                apiKey: res.ai_api_key
+            }));
+        }).catch(() => {});
+    }, []);
+
+    const handleSaveConfig = async () => {
+        try {
+            await saveAISettings({ ai_api_url: settings.apiUrl, ai_api_key: settings.apiKey });
+            toast({ title: 'Configuration sauvegardée' });
+        } catch (err) {
+            toast({ variant: 'destructive', title: 'Erreur', description: err.message });
+        }
     };
     
     const handleCreateBackup = () => {
@@ -46,48 +50,6 @@ const SystemView = () => {
 
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div className="grid lg:grid-cols-3 gap-6">
-                <div className="metric-card rounded-xl p-6">
-                    <div className="flex items-center space-x-4">
-                        <Cpu className="w-10 h-10 text-green-500 components-superadmin-SystemView__text-green-500" />
-                        <div>
-                            <p className="text-sm text-muted-foreground">Utilisation CPU IA</p>
-                            <p className="text-2xl font-bold text-foreground">{currentCpuUsage}%</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="metric-card rounded-xl p-6">
-                    <div className="flex items-center space-x-4">
-                        <HardDrive className="w-10 h-10 text-primary components-superadmin-SystemView__text-primary" />
-                        <div>
-                            <p className="text-sm text-muted-foreground">Utilisation RAM IA</p>
-                            <p className="text-2xl font-bold text-foreground">8.2 / 16 GB</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="metric-card rounded-xl p-6">
-                    <div className="flex items-center space-x-4">
-                        <Clock className="w-10 h-10 text-yellow-500 components-superadmin-SystemView__text-yellow-500" />
-                        <div>
-                            <p className="text-sm text-muted-foreground">Latence moyenne</p>
-                            <p className="text-2xl font-bold text-foreground">1.2s</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="dashboard-card rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4 components-superadmin-SystemView__text-foreground">Utilisation CPU en temps réel</h3>
-                <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={cpuData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                        <YAxis stroke="hsl(var(--muted-foreground))" domain={[0, 100]} unit="%" />
-                        <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))' }} cursor={{fill: 'hsl(var(--accent))'}}/>
-                        <Line type="monotone" dataKey="usage" name="CPU" stroke="hsl(145 63% 49%)" strokeWidth={2} dot={false} />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
 
             <div className="dashboard-card rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-foreground mb-4 components-superadmin-SystemView__text-foreground">Configuration globale de l'IA</h3>
@@ -103,13 +65,21 @@ const SystemView = () => {
                     </div>
                     <div>
                         <Label className="text-foreground font-medium components-superadmin-SystemView__text-foreground">Température ({settings.temperature})</Label>
-                        <Slider 
-                            defaultValue={[settings.temperature]} 
-                            max={1} 
-                            step={0.1} 
+                        <Slider
+                            defaultValue={[settings.temperature]}
+                            max={1}
+                            step={0.1}
                             onValueChange={(value) => setSettings({...settings, temperature: value[0]})}
                             className="w-full mt-2"
                         />
+                    </div>
+                    <div>
+                        <Label htmlFor="apiUrl" className="text-foreground font-medium">API URL</Label>
+                        <Input id="apiUrl" value={settings.apiUrl} onChange={(e) => setSettings({...settings, apiUrl: e.target.value})} className="mt-2 bg-secondary border-border text-foreground" />
+                    </div>
+                    <div>
+                        <Label htmlFor="apiKey" className="text-foreground font-medium">Clé API</Label>
+                        <Input id="apiKey" value={settings.apiKey} onChange={(e) => setSettings({...settings, apiKey: e.target.value})} className="mt-2 bg-secondary border-border text-foreground" />
                     </div>
                     <Button className="gradient-bg" onClick={handleSaveConfig}>
                         <Save className="w-4 h-4 mr-2" />

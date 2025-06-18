@@ -1,23 +1,25 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/lib/authContext';
 import { useClientData } from '@/hooks/useClientData';
-import { 
-  Bot, 
-  Palette, 
+import {
+  Bot,
+  Palette,
   BrainCircuit,
-  Settings, 
-  BarChart3, 
+  Settings,
+  BarChart3,
   QrCode,
   LogOut,
   TestTube,
   BookUser,
   LayoutDashboard,
   Bell,
-  Languages as LanguagesIcon
+  Menu,
+  Languages as LanguagesIcon,
+  LifeBuoy
 } from 'lucide-react';
 
 const DashboardView = lazy(() => import('@/components/client/DashboardView'));
@@ -26,7 +28,8 @@ const KnowledgeView = lazy(() => import('@/components/client/IntentsView'));
 const QRCodeView = lazy(() => import('@/components/client/QRCodeView'));
 const AnalyticsView = lazy(() => import('@/components/client/AnalyticsView'));
 const SettingsView = lazy(() => import('@/components/client/SettingsView'));
-const LanguagesView = lazy(() => import('@/components/client/LanguagesView')); 
+const LanguagesView = lazy(() => import('@/components/client/LanguagesView'));
+const SupportView = lazy(() => import('@/components/client/SupportView'));
 
 const LoadingViewFallback = () => (
   <div className="min-h-[calc(100vh-10rem)] flex items-center justify-center">
@@ -43,7 +46,7 @@ const ClientDashboard = () => {
 
   const getActiveTab = () => {
     const path = location.pathname.split('/').pop();
-    if (['customize', 'knowledge', 'analytics', 'qr-code', 'settings', 'documentation', 'languages'].includes(path)) {
+    if (['customize', 'knowledge', 'analytics', 'qr-code', 'settings', 'documentation', 'languages', 'support'].includes(path)) {
       return path;
     }
     return 'dashboard';
@@ -62,11 +65,29 @@ const ClientDashboard = () => {
      }
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? 'hidden' : 'auto';
+  }, [sidebarOpen]);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
   const Sidebar = () => (
-    <div className="w-64 sidebar-nav h-screen fixed left-0 top-0 p-6 flex flex-col">
-      <div className="flex items-center space-x-2 mb-8">
-        <Bot className="w-8 h-8 text-primary" />
-        <span className="text-xl font-bold gradient-text">HotelBot</span>
+    <div
+      className={`w-64 sidebar-nav h-screen fixed left-0 top-0 p-6 flex flex-col z-50 transform md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+    >
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center space-x-2">
+          <Bot className="w-8 h-8 text-primary" />
+          <span className="text-xl font-bold gradient-text">HotelBot</span>
+        </div>
+        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSidebarOpen(false)}>
+          <span className="sr-only">Fermer</span>
+          ✕
+        </Button>
       </div>
 
       <nav className="space-y-2 flex-grow">
@@ -78,19 +99,24 @@ const ClientDashboard = () => {
           { id: 'analytics', icon: BarChart3, label: 'Analytics', path: '/client/analytics' },
           { id: 'qr-code', icon: QrCode, label: 'QR Code & Lien', path: '/client/qr-code' },
           { id: 'settings', icon: Settings, label: 'Paramètres & Compte', path: '/client/settings' },
+          { id: 'support', icon: LifeBuoy, label: 'Support', path: '/client/support' },
           { id: 'documentation', icon: BookUser, label: 'Documentation', path: '/client/documentation' },
-        ].map((item) => (
-          <Link
-            key={item.id}
-            to={item.path}
-            className={`nav-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left ${
-              getActiveTab() === item.id ? 'active' : ''
-            }`}
-          >
-            <item.icon className="w-5 h-5" />
-            <span>{item.label}</span>
-          </Link>
-        ))}
+        ].map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.id}
+              to={item.path}
+              onClick={() => setSidebarOpen(false)}
+              className={`nav-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left ${
+                getActiveTab() === item.id ? 'active' : ''
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       <div>
@@ -127,7 +153,16 @@ const ClientDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="ml-64">
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+      <button
+        className={`md:hidden fixed top-4 left-4 z-50 bg-primary text-primary-foreground p-2 rounded-md ${sidebarOpen ? 'hidden' : ''}`}
+        onClick={() => setSidebarOpen(true)}
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+      <div className="md:ml-64">
         <AnimatePresence mode="wait">
           <Suspense fallback={<LoadingViewFallback />}>
             <Routes location={location} key={location.pathname}>
@@ -138,6 +173,7 @@ const ClientDashboard = () => {
               <Route path="languages" element={<LanguagesView />} />
               <Route path="qr-code" element={<QRCodeView />} />
               <Route path="analytics" element={<AnalyticsView />} />
+              <Route path="support" element={<SupportView />} />
               <Route path="settings" element={<SettingsView />} />
               <Route path="documentation" element={<DocumentationView />} />
               <Route path="*" element={<PlaceholderView title="Page non trouvée" message="Désolé, cette page n'existe pas." />} />

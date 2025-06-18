@@ -28,6 +28,12 @@ export const useClientData = () => {
           console.error('getAnalytics failed:', err);
           return {};
         });
+      const customizationPromise = apiService
+        .getCustomization()
+        .catch((err) => {
+          console.error('getCustomization failed:', err);
+          return null;
+        });
       const ticketsPromise = apiService
         .getSupportTickets()
         .catch((err) => {
@@ -41,9 +47,10 @@ export const useClientData = () => {
           return [];
         });
 
-      const [hotelData, analyticsData, ticketsData, knowledgeData] = await Promise.all([
+      const [hotelData, analyticsData, customizationData, ticketsData, knowledgeData] = await Promise.all([
         hotelPromise,
         analyticsPromise,
+        customizationPromise,
         ticketsPromise,
         knowledgePromise,
       ]);
@@ -57,13 +64,23 @@ export const useClientData = () => {
           notificationEmail: hotelData.contact_email,
           slug: hotelData.slug
         });
-        setCustomization({
-          name: hotelData.name,
-          welcomeMessage: hotelData.welcome_message,
-          primaryColor: hotelData.theme_color,
-          logoUrl: hotelData.logo_url,
-          defaultLanguage: hotelData.default_lang_code
-        });
+        if (customizationData) {
+          setCustomization({
+            name: customizationData.name,
+            welcomeMessage: customizationData.welcome_message,
+            primaryColor: customizationData.theme_color,
+            logoUrl: customizationData.logo_url,
+            defaultLanguage: customizationData.default_language || hotelData.default_lang_code,
+          });
+        } else {
+          setCustomization({
+            name: hotelData.name,
+            welcomeMessage: hotelData.welcome_message,
+            primaryColor: hotelData.theme_color,
+            logoUrl: hotelData.logo_url,
+            defaultLanguage: hotelData.default_lang_code,
+          });
+        }
         if (hotelData.languages) {
           setAvailableLanguages(hotelData.languages);
         }
@@ -101,12 +118,12 @@ export const useClientData = () => {
   const updateCustomization = async (config) => {
     if (!hotelId) return null;
     try {
-      const updated = await apiService.updateHotel(hotelId, {
+      const updated = await apiService.updateCustomization({
         name: config.name,
         welcome_message: config.welcomeMessage,
         theme_color: config.primaryColor,
         logo_url: config.logoUrl,
-        default_lang_code: config.defaultLanguage
+        default_language: config.defaultLanguage,
       });
       setCustomization(prev => ({ ...prev, ...config }));
       return updated;
