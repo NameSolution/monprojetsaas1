@@ -136,7 +136,8 @@ export const useClientData = () => {
     if (!hotelId) return null;
     try {
       const updated = await apiService.updateHotel(hotelId, {
-        default_lang_code: defaultLang
+        default_lang_code: defaultLang,
+        languages: langs
       });
       setAvailableLanguages(langs);
       setCustomization(prev => ({ ...prev, defaultLanguage: defaultLang }));

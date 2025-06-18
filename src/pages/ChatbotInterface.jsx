@@ -31,12 +31,13 @@ const ChatbotInterface = () => {
   const [sessionId, setSessionId] = useState(null);
   const [interactionToRate, setInteractionToRate] = useState(null);
 
-  const availableLanguages = [
-    { code: 'fr', name: 'Français', flag: 'flag-fr' },
-    { code: 'en', name: 'English', flag: 'flag-en' },
-    { code: 'es', name: 'Español', flag: 'flag-es' },
-    { code: 'de', name: 'Deutsch', flag: 'flag-de' },
+  const fallbackLanguages = [
+    { code: 'fr', name: 'Français', flag: 'flag-fr', active: true },
+    { code: 'en', name: 'English', flag: 'flag-en', active: true },
+    { code: 'es', name: 'Español', flag: 'flag-es', active: false },
+    { code: 'de', name: 'Deutsch', flag: 'flag-de', active: false },
   ];
+  const [availableLanguages, setAvailableLanguages] = useState(fallbackLanguages);
 
   const generateId = () => {
     if (crypto.randomUUID) {
@@ -68,7 +69,9 @@ const ChatbotInterface = () => {
             toast({variant: "destructive", title: "Erreur", description: "Configuration du chatbot introuvable."});
             setHotelConfig(prev => ({...prev, id: null, name: "Chatbot Indisponible", welcomeMessage: "Ce chatbot n'est pas configuré."}));
         } else {
-            const defaultLang = availableLanguages.find(l => l.code === config.defaultLanguage) || availableLanguages[0];
+            const langs = Array.isArray(config.languages) && config.languages.length > 0 ? config.languages : fallbackLanguages;
+            setAvailableLanguages(langs);
+            const defaultLang = langs.find(l => l.code === config.defaultLanguage) || langs[0];
             setHotelConfig({
                 id: config.id,
                 name: config.name || 'Assistant Hôtelier',
@@ -215,7 +218,7 @@ const ChatbotInterface = () => {
                         exit={{ opacity: 0, y: -10 }}
                         className="absolute right-0 top-12 w-48 bg-card/90 backdrop-blur-md rounded-lg p-2 z-10 border border-border shadow-lg"
                     >
-                        {availableLanguages.map(lang => (
+                        {availableLanguages.filter(l => l.active !== false).map(lang => (
                             <button key={lang.code} onClick={() => selectLanguage(lang)} className={`w-full flex items-center space-x-2 p-2 text-foreground hover:bg-accent rounded-md text-sm ${currentLanguage.code === lang.code ? 'bg-accent font-semibold' : ''}`}>
                                 <span className={`language-flag ${lang.flag}`}></span>
                                 <span>{lang.name}</span>

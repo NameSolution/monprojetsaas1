@@ -70,7 +70,7 @@ router.post('/', async (req, res) => {
 // Update hotel
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, description, logo_url, default_lang_code, contact_name, contact_email } = req.body;
+  const { name, description, logo_url, default_lang_code, contact_name, contact_email, languages } = req.body;
 
   try {
     const result = await db.query(
@@ -89,6 +89,25 @@ router.put('/:id', async (req, res) => {
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Hotel not found or access denied' });
+    }
+
+    if (Array.isArray(languages)) {
+      const codes = languages.map(l => l.code);
+      for (const lang of languages) {
+        await db.query(
+          `INSERT INTO hotel_languages (hotel_id, lang_code, is_active)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (hotel_id, lang_code)
+           DO UPDATE SET is_active = EXCLUDED.is_active`,
+          [id, lang.code, !!lang.active]
+        );
+      }
+      if (codes.length) {
+        await db.query(
+          `DELETE FROM hotel_languages WHERE hotel_id = $1 AND lang_code NOT IN (${codes.map((_,i)=>'$'+(i+2)).join(',')})`,
+          [id, ...codes]
+        );
+      }
     }
 
     res.json(result.rows[0]);

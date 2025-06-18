@@ -34,10 +34,14 @@ router.get('/hotel/:slug', async (req, res) => {
               COALESCE(c.welcome_message,h.welcome_message) AS welcome_message,
               COALESCE(c.logo_url,h.logo_url) AS logo_url,
               COALESCE(c.default_language,h.default_lang_code) AS default_lang_code,
-              c.menu_items
+              c.menu_items,
+              COALESCE(json_agg(json_build_object('code', hl.lang_code, 'active', hl.is_active))
+                  FILTER (WHERE hl.lang_code IS NOT NULL), '[]') AS languages
          FROM hotels h
          LEFT JOIN hotel_customizations c ON c.hotel_id = h.id
-        WHERE h.slug = $1`,
+         LEFT JOIN hotel_languages hl ON hl.hotel_id = h.id
+        WHERE h.slug = $1
+        GROUP BY h.id, c.id`,
       [req.params.slug]
     );
     if (result.rows.length === 0) {
@@ -82,8 +86,13 @@ router.post('/ask', async (req, res) => {
       [hotel_id, session_id]
     );
 
+    const systemParts = [...knowledge];
+    if (lang) {
+      systemParts.push(`Please answer in ${lang}`);
+    }
+
     const messages = [
-      { role: 'system', content: knowledge.join('\n') },
+      { role: 'system', content: systemParts.join('\n') },
       ...historyRows.flatMap(h => [
         { role: 'user', content: h.user_input },
         { role: 'assistant', content: h.bot_response }
