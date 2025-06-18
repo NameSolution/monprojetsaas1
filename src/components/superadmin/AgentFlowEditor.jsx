@@ -5,6 +5,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useSuperAdminData } from '@/hooks/useSuperAdminData';
+import { getLLMResponse } from '@/services/chatbotService';
 
 const AgentFlowEditor = () => {
   const { allData, fetchAgentConfig, saveAgentConfig } = useSuperAdminData();
@@ -13,6 +14,9 @@ const AgentFlowEditor = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
+  const [agentConfig, setAgentConfig] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [inputMsg, setInputMsg] = useState('');
 
   useEffect(() => {
     if (selectedHotel) {
@@ -29,9 +33,11 @@ const AgentFlowEditor = () => {
             .map(n => ({ id: `${n.id}-${n.next}`, source: n.id, target: n.next }));
           setNodes(n);
           setEdges(e);
+          setAgentConfig(cfg);
         } else {
           setNodes([]);
           setEdges([]);
+          setAgentConfig(null);
         }
       });
     }
@@ -138,6 +144,20 @@ const AgentFlowEditor = () => {
           )}
         </div>
       )}
+      <div className="space-y-2 p-4 border rounded">
+        <h4 className="font-semibold">Simulateur</h4>
+        <div className="h-48 overflow-y-auto border p-2 rounded">
+          {messages.map((m,i)=>(
+            <div key={i} className={`text-sm my-1 ${m.role==='user'?'text-right':''}`}>
+              <span className="px-2 py-1 rounded bg-secondary inline-block max-w-xs">{m.content}</span>
+            </div>
+          ))}
+        </div>
+        <form onSubmit={async e=>{e.preventDefault(); if(!inputMsg.trim()) return; const msg={role:'user',content:inputMsg}; setMessages(prev=>[...prev,msg]); setInputMsg(''); const lang=agentConfig?.language||'fr'; const res=await getLLMResponse(selectedHotel,'editor',lang,inputMsg); setMessages(prev=>[...prev,{role:'assistant',content:res}]);}} className="flex space-x-2">
+          <Input className="flex-1" value={inputMsg} onChange={e=>setInputMsg(e.target.value)} />
+          <Button type="submit" size="sm">Envoyer</Button>
+        </form>
+      </div>
     </div>
   );
 };
