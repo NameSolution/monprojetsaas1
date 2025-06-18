@@ -8,7 +8,6 @@ import { useClientData } from '@/hooks/useClientData';
 import {
   Bot,
   Palette,
-  BrainCircuit,
   Settings,
   BarChart3,
   QrCode,
@@ -24,7 +23,6 @@ import {
 
 const DashboardView = lazy(() => import('@/components/client/DashboardView'));
 const CustomizeView = lazy(() => import('@/components/client/CustomizeView'));
-const KnowledgeView = lazy(() => import('@/components/client/IntentsView'));
 const QRCodeView = lazy(() => import('@/components/client/QRCodeView'));
 const AnalyticsView = lazy(() => import('@/components/client/AnalyticsView'));
 const SettingsView = lazy(() => import('@/components/client/SettingsView'));
@@ -47,7 +45,7 @@ const ClientDashboard = () => {
 
   const getActiveTab = () => {
     const path = location.pathname.split('/').pop();
-    if (['customize', 'knowledge', 'analytics', 'qr-code', 'settings', 'documentation', 'languages', 'support'].includes(path)) {
+    if (['customize', 'analytics', 'qr-code', 'settings', 'documentation', 'languages', 'support', 'builder'].includes(path)) {
       return path;
     }
     return 'dashboard';
@@ -95,7 +93,6 @@ const ClientDashboard = () => {
         {[
           { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/client' },
           { id: 'customize', icon: Palette, label: 'Personnalisation', path: '/client/customize' },
-          { id: 'knowledge', icon: BrainCircuit, label: 'Base de Connaissances', path: '/client/knowledge' },
           { id: 'builder', icon: Bot, label: 'Agent Builder', path: '/client/builder' },
           { id: 'languages', icon: LanguagesIcon, label: 'Langues', path: '/client/languages' },
           { id: 'analytics', icon: BarChart3, label: 'Analytics', path: '/client/analytics' },
@@ -171,7 +168,6 @@ const ClientDashboard = () => {
               <Route path="" element={<DashboardView />} />
               <Route path="dashboard" element={<DashboardView />} />
               <Route path="customize" element={<CustomizeView />} />
-              <Route path="knowledge" element={<KnowledgeView />} />
               <Route path="builder" element={<AgentBuilderView />} />
               <Route path="languages" element={<LanguagesView />} />
               <Route path="qr-code" element={<QRCodeView />} />

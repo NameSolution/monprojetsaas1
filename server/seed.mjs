@@ -181,6 +181,7 @@ async function seedDatabase() {
     await ensureColumn('interactions', 'timestamp', 'TIMESTAMPTZ DEFAULT NOW()');
     await ensureColumn('interactions', 'session_id', 'UUID');
     await ensureColumn('interactions', 'keywords', 'TEXT');
+    await ensureColumn('agent_nodes', 'buttons', 'JSONB');
 
     const hotelCols = [
       ['plan_id', 'UUID'],
