@@ -112,6 +112,17 @@ async function createTables() {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS public.agent_nodes (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id INT NOT NULL DEFAULT 1,
+        hotel_id UUID REFERENCES public.hotels(id),
+        prompt TEXT,
+        response TEXT,
+        next_id UUID,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS public.support_tickets (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id INT NOT NULL DEFAULT 1,
@@ -203,9 +214,12 @@ async function seedDatabase() {
 
     await ensureSetting(
       'ai_api_url',
-      process.env.AI_API_URL || 'http://localhost:11434/v1'
+      process.env.AI_API_URL || 'https://openrouter.ai/api/v1'
     );
-    await ensureSetting('ai_api_key', process.env.AI_API_KEY || '');
+    await ensureSetting(
+      'ai_api_key',
+      process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || ''
+    );
 
     console.log('🚀 Début du seed de la base…');
 
@@ -356,6 +370,13 @@ async function seedDatabase() {
           (1, '550e8400-e29b-41d4-a716-446655440000', 'Le check-out doit \u00eatre effectu\u00e9 avant 11h.'),
           (1, '550e8400-e29b-41d4-a716-446655440000', 'Le wifi est gratuit dans tout l\'\u00e9tablissement.'),
           (1, '550e8400-e29b-41d4-a716-446655440000', 'Un parking priv\u00e9 est disponible sur r\u00e9servation.')
+        ON CONFLICT DO NOTHING;
+      `);
+
+      await db.query(`
+        INSERT INTO public.agent_nodes (tenant_id, hotel_id, prompt, response, next_id)
+        VALUES
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'salutation', 'Bonjour et bienvenue au Demo Hotel !', NULL)
         ON CONFLICT DO NOTHING;
       `);
     }

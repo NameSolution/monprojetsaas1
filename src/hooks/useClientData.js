@@ -7,6 +7,7 @@ export const useClientData = () => {
   const [analytics, setAnalytics] = useState({});
   const [supportTickets, setSupportTickets] = useState([]);
   const [knowledgeBase, setKnowledgeBase] = useState([]);
+  const [agentNodes, setAgentNodes] = useState([]);
   const [availableLanguages, setAvailableLanguages] = useState([]);
   const [hotelId, setHotelId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,13 +47,20 @@ export const useClientData = () => {
           console.error('getKnowledgeItems failed:', err);
           return [];
         });
+      const nodesPromise = apiService
+        .getAgentNodes()
+        .catch((err) => {
+          console.error('getAgentNodes failed:', err);
+          return [];
+        });
 
-      const [hotelData, analyticsData, customizationData, ticketsData, knowledgeData] = await Promise.all([
+      const [hotelData, analyticsData, customizationData, ticketsData, knowledgeData, nodesData] = await Promise.all([
         hotelPromise,
         analyticsPromise,
         customizationPromise,
         ticketsPromise,
         knowledgePromise,
+        nodesPromise,
       ]);
 
       if (hotelData) {
@@ -89,6 +97,7 @@ export const useClientData = () => {
       setAnalytics(analyticsData || {});
       setSupportTickets(ticketsData || []);
       setKnowledgeBase(knowledgeData || []);
+      setAgentNodes(nodesData || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -204,6 +213,23 @@ export const useClientData = () => {
     }
   };
 
+  const saveAgentNode = async (node) => {
+    const saved = await apiService.saveAgentNode(node);
+    setAgentNodes((prev) => {
+      const idx = prev.findIndex((n) => n.id === saved.id);
+      if (idx >= 0) {
+        return prev.map((n) => (n.id === saved.id ? saved : n));
+      }
+      return [...prev, saved];
+    });
+    return saved;
+  };
+
+  const deleteAgentNode = async (id) => {
+    await apiService.deleteAgentNode(id);
+    setAgentNodes((prev) => prev.filter((n) => n.id !== id));
+  };
+
   return {
     profile,
     customization,
@@ -221,6 +247,9 @@ export const useClientData = () => {
     createSupportTicket,
     updateKnowledgeBase,
     deleteKnowledgeItem,
+    agentNodes,
+    saveAgentNode,
+    deleteAgentNode,
     refetch: fetchData
   };
 };

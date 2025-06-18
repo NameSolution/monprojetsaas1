@@ -30,6 +30,7 @@ const AnalyticsView = lazy(() => import('@/components/client/AnalyticsView'));
 const SettingsView = lazy(() => import('@/components/client/SettingsView'));
 const LanguagesView = lazy(() => import('@/components/client/LanguagesView'));
 const SupportView = lazy(() => import('@/components/client/SupportView'));
+const AgentBuilderView = lazy(() => import('@/components/client/AgentBuilderView'));
 
 const LoadingViewFallback = () => (
   <div className="min-h-[calc(100vh-10rem)] flex items-center justify-center">
@@ -95,6 +96,7 @@ const ClientDashboard = () => {
           { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/client' },
           { id: 'customize', icon: Palette, label: 'Personnalisation', path: '/client/customize' },
           { id: 'knowledge', icon: BrainCircuit, label: 'Base de Connaissances', path: '/client/knowledge' },
+          { id: 'builder', icon: Bot, label: 'Agent Builder', path: '/client/builder' },
           { id: 'languages', icon: LanguagesIcon, label: 'Langues', path: '/client/languages' },
           { id: 'analytics', icon: BarChart3, label: 'Analytics', path: '/client/analytics' },
           { id: 'qr-code', icon: QrCode, label: 'QR Code & Lien', path: '/client/qr-code' },
@@ -170,6 +172,7 @@ const ClientDashboard = () => {
               <Route path="dashboard" element={<DashboardView />} />
               <Route path="customize" element={<CustomizeView />} />
               <Route path="knowledge" element={<KnowledgeView />} />
+              <Route path="builder" element={<AgentBuilderView />} />
               <Route path="languages" element={<LanguagesView />} />
               <Route path="qr-code" element={<QRCodeView />} />
               <Route path="analytics" element={<AnalyticsView />} />

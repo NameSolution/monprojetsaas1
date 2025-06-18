@@ -14,14 +14,23 @@ async function callLLM(messages, model) {
   const endpoint = (settings.ai_api_url || process.env.AI_API_URL || 'http://localhost:11434/v1')
     .replace(/\/?$/, '') +
     '/chat/completions';
-  const key = settings.ai_api_key || process.env.AI_API_KEY || '';
+  const key =
+    settings.ai_api_key ||
+    process.env.AI_API_KEY ||
+    process.env.OPENROUTER_API_KEY ||
+    '';
   const res = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(key ? { Authorization: `Bearer ${key}` } : {})
+      ...(key ? { Authorization: `Bearer ${key}` } : {}),
+      ...(process.env.SITE_URL ? { 'HTTP-Referer': process.env.SITE_URL } : {}),
+      ...(process.env.SITE_NAME ? { 'X-Title': process.env.SITE_NAME } : {})
     },
-    body: JSON.stringify({ model: model || settings.ai_model || process.env.AI_MODEL || 'phi3:mini', messages })
+    body: JSON.stringify({
+      model: model || settings.ai_model || process.env.AI_MODEL || 'phi3:mini',
+      messages
+    })
   });
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);

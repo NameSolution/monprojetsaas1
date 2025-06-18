@@ -226,6 +226,22 @@ class ApiService {
       method: 'DELETE'
     });
   }
+
+  // Agent builder methods
+  async getAgentNodes() {
+    return this.request('/agents');
+  }
+
+  async saveAgentNode(data) {
+    return this.request('/agents', {
+      method: 'POST',
+      body: data
+    });
+  }
+
+  async deleteAgentNode(id) {
+    return this.request(`/agents/${id}`, { method: 'DELETE' });
+  }
 }
 
 export default new ApiService();

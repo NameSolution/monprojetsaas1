@@ -15,6 +15,7 @@ const knowledgeRoutes = require('./server/knowledge.cjs');
 const clientsRoutes = require('./server/clients.cjs');
 const customizationRoutes = require('./server/customization.cjs');
 const settingsRoutes = require('./server/settings.cjs');
+const agentRoutes = require('./server/agents.cjs');
 // Upload functionality will be integrated directly
 
 const authMiddleware = require('./server/authMiddleware.cjs');
@@ -49,6 +50,7 @@ app.use('/api/customization', authMiddleware, customizationRoutes);
 app.use('/api/settings', authMiddleware, settingsRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/clients', authMiddleware, clientsRoutes);
+app.use('/api/agents', authMiddleware, agentRoutes);
 // Upload routes integrated directly
 
 // Health check endpoint
