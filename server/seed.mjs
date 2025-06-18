@@ -201,11 +201,11 @@ async function seedDatabase() {
       await ensureColumn('support_tickets', c, d);
     }
 
-    await ensureSetting('ai_api_url', process.env.AI_API_URL || 'https://openrouter.ai/api/v1');
     await ensureSetting(
-      'ai_api_key',
-      process.env.OPENROUTER_API_KEY || process.env.AI_API_KEY || ''
+      'ai_api_url',
+      process.env.AI_API_URL || 'http://localhost:11434/v1'
     );
+    await ensureSetting('ai_api_key', process.env.AI_API_KEY || '');
 
     console.log('🚀 Début du seed de la base…');
 

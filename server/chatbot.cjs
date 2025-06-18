@@ -2,21 +2,10 @@ const express = require('express');
 const db = require('./db.cjs');
 
 async function callLLM(messages, model) {
-  let url = process.env.AI_API_URL || 'http://localhost:11434/v1';
-  let key = process.env.AI_API_KEY || '';
-  try {
-    const { rows } = await db.query(
-      "SELECT key, value FROM settings WHERE key IN ('ai_api_url','ai_api_key','ai_model')"
-    );
-    const map = Object.fromEntries(rows.map(r => [r.key, r.value]));
-    if (map.ai_api_url) url = map.ai_api_url;
-    if (map.ai_api_key) key = map.ai_api_key;
-    if (!model) model = map.ai_model;
-  } catch (err) {
-    console.warn('Failed to load AI settings from DB:', err.message);
-  }
-
-  const endpoint = url.replace(/\/?$/, '') + '/chat/completions';
+  const endpoint = (process.env.AI_API_URL || 'http://localhost:11434/v1')
+    .replace(/\/?$/, '') +
+    '/chat/completions';
+  const key = process.env.AI_API_KEY || '';
   const res = await fetch(endpoint, {
     method: 'POST',
     headers: {
