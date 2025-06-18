@@ -19,7 +19,9 @@ import {
   Settings as SettingsIcon,
   LifeBuoy,
   Menu,
-  Bot
+  Bot,
+  List,
+  History
 } from 'lucide-react';
 
 const SuperAdminDashboardView = lazy(() => import('@/components/superadmin/SuperAdminDashboardView'));
@@ -29,7 +31,9 @@ const SystemView = lazy(() => import('@/components/superadmin/SystemView'));
 const SuperAdminAnalyticsView = lazy(() => import('@/components/superadmin/AnalyticsView'));
 const SuperAdminBillingView = lazy(() => import('@/components/superadmin/BillingView'));
 const SuperAdminSettingsView = lazy(() => import('@/components/superadmin/SettingsView'));
-const SupportTicketsView = lazy(() => import('@/components/superadmin/SupportTicketsView')); 
+const SupportTicketsView = lazy(() => import('@/components/superadmin/SupportTicketsView'));
+const InteractionsView = lazy(() => import('@/components/superadmin/InteractionsView'));
+const AgentHistoryView = lazy(() => import('@/components/superadmin/AgentHistoryView'));
 
 const LoadingViewFallback = () => (
   <div className="min-h-[calc(100vh-10rem)] flex items-center justify-center">
@@ -64,7 +68,7 @@ const SuperAdminDashboard = () => {
 
   const getActiveTab = () => {
     const path = location.pathname.split('/').pop();
-    if (['clients', 'agent-builder', 'analytics', 'billing', 'system', 'settings', 'support-tickets'].includes(path)) {
+    if (['clients', 'agent-builder', 'analytics', 'billing', 'system', 'settings', 'support-tickets', 'interactions', 'agent-history'].includes(path)) {
       return path;
     }
     return 'dashboard';
@@ -108,6 +112,8 @@ const SuperAdminDashboard = () => {
           { id: 'clients', icon: Users, label: 'Hôtels & Utilisateurs', path: '/superadmin/clients' },
           { id: 'agent-builder', icon: Bot, label: 'Agent Builder', path: '/superadmin/agent-builder' },
           { id: 'support-tickets', icon: LifeBuoy, label: 'Support Tickets', path: '/superadmin/support-tickets', badge: notifications > 0 ? notifications : null },
+          { id: 'interactions', icon: List, label: 'Logs', path: '/superadmin/interactions' },
+          { id: 'agent-history', icon: History, label: 'Historique', path: '/superadmin/agent-history' },
           { id: 'analytics', icon: BarChart3, label: 'Analytics', path: '/superadmin/analytics' },
           { id: 'billing', icon: CreditCard, label: 'Facturation', path: '/superadmin/billing' },
           { id: 'system', icon: Server, label: 'Système IA', path: '/superadmin/system' },
@@ -215,6 +221,8 @@ const SuperAdminDashboard = () => {
                 <Route path="clients" element={<ClientsView />} />
                 <Route path="agent-builder" element={<AgentFlowEditor />} />
                 <Route path="support-tickets" element={<SupportTicketsView />} />
+                <Route path="interactions" element={<InteractionsView />} />
+                <Route path="agent-history" element={<AgentHistoryView />} />
                 <Route path="system" element={<SystemView />} />
                 <Route path="analytics" element={<SuperAdminAnalyticsView />} />
               <Route path="billing" element={<SuperAdminBillingView />} />

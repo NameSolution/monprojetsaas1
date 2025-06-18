@@ -10,6 +10,7 @@ const SuperAdminDashboard = lazy(() => import('@/pages/SuperAdminDashboard.jsx')
 const ClientDashboard = lazy(() => import('@/pages/ClientDashboard.jsx'));
 const ChatbotInterface = lazy(() => import('@/pages/ChatbotInterface.jsx'));
 const LoginPage = lazy(() => import('@/pages/LoginPage.jsx'));
+const HotelInfoPage = lazy(() => import('@/pages/HotelInfoPage.jsx'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -78,15 +79,16 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
-              <Route 
-                path="/client/*" 
+              <Route
+                path="/client/*"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'manager']}>
                     <ClientDashboard />
                   </ProtectedRoute>
-                } 
+                }
               />
               <Route path="/bot/:slug" element={<ChatbotInterface />} />
+              <Route path="/hotel/:slug" element={<HotelInfoPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

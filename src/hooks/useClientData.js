@@ -8,6 +8,7 @@ export const useClientData = () => {
   const [supportTickets, setSupportTickets] = useState([]);
   const [knowledgeBase, setKnowledgeBase] = useState([]);
   const [agentConfig, setAgentConfig] = useState(null);
+  const [interactions, setInteractions] = useState([]);
   const [availableLanguages, setAvailableLanguages] = useState([]);
   const [hotelId, setHotelId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -53,14 +54,21 @@ export const useClientData = () => {
           console.error('getAgentConfig failed:', err);
           return null;
         });
+      const interactionsPromise = apiService
+        .getInteractions()
+        .catch((err) => {
+          console.error('getInteractions failed:', err);
+          return [];
+        });
 
-      const [hotelData, analyticsData, customizationData, ticketsData, knowledgeData, agentData] = await Promise.all([
+      const [hotelData, analyticsData, customizationData, ticketsData, knowledgeData, agentData, interactionsData] = await Promise.all([
         hotelPromise,
         analyticsPromise,
         customizationPromise,
         ticketsPromise,
         knowledgePromise,
         agentPromise,
+        interactionsPromise,
       ]);
 
       if (hotelData) {
@@ -97,6 +105,7 @@ export const useClientData = () => {
       setAnalytics(analyticsData || {});
       setSupportTickets(ticketsData || []);
       setKnowledgeBase(knowledgeData || []);
+      setInteractions(interactionsData || []);
       if (agentData) setAgentConfig(agentData);
     } catch (err) {
       setError(err.message);
@@ -219,6 +228,16 @@ export const useClientData = () => {
     return saved;
   };
 
+  const fetchInteractions = async () => {
+    try {
+      const data = await apiService.getInteractions();
+      setInteractions(data);
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  };
+
   return {
     profile,
     customization,
@@ -238,6 +257,8 @@ export const useClientData = () => {
     deleteKnowledgeItem,
     agentConfig,
     saveAgentConfig,
+    interactions,
+    fetchInteractions,
     refetch: fetchData
   };
 };

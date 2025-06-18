@@ -53,6 +53,13 @@ router.get('/hotel/:slug', async (req, res) => {
               COALESCE(c.logo_url,h.logo_url) AS logo_url,
               COALESCE(c.default_language,h.default_lang_code) AS default_lang_code,
               c.menu_items,
+              h.description,
+              h.contact_name,
+              h.contact_email,
+              h.booking_link,
+              h.address,
+              h.phone,
+              h.email,
               COALESCE(json_agg(json_build_object('code', hl.lang_code,
                                           'name', l.name,
                                           'active', hl.is_active))

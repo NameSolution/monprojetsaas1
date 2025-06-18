@@ -119,8 +119,17 @@ async function createTables() {
         language TEXT,
         greeting TEXT,
         flow JSONB,
+        modules JSONB,
+        memory_vars JSONB,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS public.agent_versions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        agent_id UUID REFERENCES public.agents(hotel_id) ON DELETE CASCADE,
+        flow JSONB,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
 
@@ -201,6 +210,14 @@ async function seedDatabase() {
       await ensureColumn('hotels', c, d);
     }
 
+    const agentCols = [
+      ['modules', 'JSONB'],
+      ['memory_vars', 'JSONB']
+    ];
+    for (const [c, d] of agentCols) {
+      await ensureColumn('agents', c, d);
+    }
+
     const ticketCols = [
       ['hotel_id', 'UUID'],
       ['submitter_name', 'TEXT'],
@@ -278,6 +295,11 @@ async function seedDatabase() {
         '[{"label":"Accueil","url":"/"},{"label":"Réservation","url":"/booking"}]'::jsonb
       )
       ON CONFLICT (hotel_id) DO NOTHING;
+    `);
+
+    await db.query(`
+      INSERT INTO public.agent_versions (agent_id, flow)
+      SELECT hotel_id, flow FROM public.agents WHERE hotel_id = '550e8400-e29b-41d4-a716-446655440000';
     `);
 
     await db.query(`
@@ -372,16 +394,22 @@ async function seedDatabase() {
       `);
 
       await db.query(`
-        INSERT INTO public.agents (hotel_id, name, persona, language, greeting, flow)
+        INSERT INTO public.agents (hotel_id, name, persona, language, greeting, flow, modules, memory_vars)
         VALUES (
           '550e8400-e29b-41d4-a716-446655440000',
           'Assistant Virtuel',
           'Vous êtes le réceptionniste virtuel du Demo Hotel.',
           'fr',
           'Bonjour et bienvenue au Demo Hotel !',
-          '{"start":{"id":"start","message":"Bonjour! Comment puis-je vous aider?","next":null}}'::jsonb
+          '{"start":{"id":"start","message":"Bonjour! Comment puis-je vous aider?","next":null}}'::jsonb,
+          '["weather","booking"]'::jsonb,
+          '["name","date"]'::jsonb
         )
         ON CONFLICT (hotel_id) DO NOTHING;
+      `);
+      await db.query(`
+        INSERT INTO public.agent_versions (agent_id, flow)
+        SELECT hotel_id, flow FROM public.agents WHERE hotel_id = '550e8400-e29b-41d4-a716-446655440000';
       `);
     }
 

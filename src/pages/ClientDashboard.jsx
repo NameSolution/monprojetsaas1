@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   Bell,
   Menu,
+  List,
   Languages as LanguagesIcon,
   LifeBuoy
 } from 'lucide-react';
@@ -29,6 +30,7 @@ const SettingsView = lazy(() => import('@/components/client/SettingsView'));
 const LanguagesView = lazy(() => import('@/components/client/LanguagesView'));
 const SupportView = lazy(() => import('@/components/client/SupportView'));
 const AgentBuilderView = lazy(() => import('@/components/client/AgentBuilderView'));
+const ClientInteractionsView = lazy(() => import('@/components/client/InteractionsView'));
 
 const LoadingViewFallback = () => (
   <div className="min-h-[calc(100vh-10rem)] flex items-center justify-center">
@@ -45,7 +47,7 @@ const ClientDashboard = () => {
 
   const getActiveTab = () => {
     const path = location.pathname.split('/').pop();
-    if (['customize', 'analytics', 'qr-code', 'settings', 'documentation', 'languages', 'support', 'builder'].includes(path)) {
+    if (['customize', 'analytics', 'qr-code', 'settings', 'documentation', 'languages', 'support', 'builder', 'interactions'].includes(path)) {
       return path;
     }
     return 'dashboard';
@@ -96,6 +98,7 @@ const ClientDashboard = () => {
           { id: 'builder', icon: Bot, label: 'Agent Builder', path: '/client/builder' },
           { id: 'languages', icon: LanguagesIcon, label: 'Langues', path: '/client/languages' },
           { id: 'analytics', icon: BarChart3, label: 'Analytics', path: '/client/analytics' },
+          { id: 'interactions', icon: List, label: 'Logs', path: '/client/interactions' },
           { id: 'qr-code', icon: QrCode, label: 'QR Code & Lien', path: '/client/qr-code' },
           { id: 'settings', icon: Settings, label: 'Paramètres & Compte', path: '/client/settings' },
           { id: 'support', icon: LifeBuoy, label: 'Support', path: '/client/support' },
@@ -172,6 +175,7 @@ const ClientDashboard = () => {
               <Route path="languages" element={<LanguagesView />} />
               <Route path="qr-code" element={<QRCodeView />} />
               <Route path="analytics" element={<AnalyticsView />} />
+              <Route path="interactions" element={<ClientInteractionsView />} />
               <Route path="support" element={<SupportView />} />
               <Route path="settings" element={<SettingsView />} />
               <Route path="documentation" element={<DocumentationView />} />
