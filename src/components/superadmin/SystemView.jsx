@@ -17,7 +17,8 @@ const SystemView = () => {
         systemPrompt: '',
         temperature: 0.5,
         apiUrl: '',
-        apiKey: ''
+        apiKey: '',
+        model: ''
     });
 
     useEffect(() => {
@@ -25,14 +26,15 @@ const SystemView = () => {
             setSettings(prev => ({
                 ...prev,
                 apiUrl: res.ai_api_url,
-                apiKey: res.ai_api_key
+                apiKey: res.ai_api_key,
+                model: res.ai_model
             }));
         }).catch(() => {});
     }, []);
 
     const handleSaveConfig = async () => {
         try {
-            await saveAISettings({ ai_api_url: settings.apiUrl, ai_api_key: settings.apiKey });
+            await saveAISettings({ ai_api_url: settings.apiUrl, ai_api_key: settings.apiKey, ai_model: settings.model });
             toast({ title: 'Configuration sauvegardée' });
         } catch (err) {
             toast({ variant: 'destructive', title: 'Erreur', description: err.message });
@@ -80,6 +82,10 @@ const SystemView = () => {
                     <div>
                         <Label htmlFor="apiKey" className="text-foreground font-medium">Clé API</Label>
                         <Input id="apiKey" value={settings.apiKey} onChange={(e) => setSettings({...settings, apiKey: e.target.value})} className="mt-2 bg-secondary border-border text-foreground" />
+                    </div>
+                    <div>
+                        <Label htmlFor="model" className="text-foreground font-medium">Modèle</Label>
+                        <Input id="model" value={settings.model} onChange={(e) => setSettings({...settings, model: e.target.value})} className="mt-2 bg-secondary border-border text-foreground" />
                     </div>
                     <Button className="gradient-bg" onClick={handleSaveConfig}>
                         <Save className="w-4 h-4 mr-2" />

@@ -107,6 +107,18 @@ async function createTables() {
         theme_color TEXT,
         logo_url TEXT,
         default_language TEXT,
+        menu_items JSONB,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS public.agent_nodes (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id INT NOT NULL DEFAULT 1,
+        hotel_id UUID REFERENCES public.hotels(id),
+        prompt TEXT,
+        response TEXT,
+        next_id UUID,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
@@ -169,6 +181,7 @@ async function seedDatabase() {
     await ensureColumn('interactions', 'timestamp', 'TIMESTAMPTZ DEFAULT NOW()');
     await ensureColumn('interactions', 'session_id', 'UUID');
     await ensureColumn('interactions', 'keywords', 'TEXT');
+    await ensureColumn('agent_nodes', 'buttons', 'JSONB');
 
     const hotelCols = [
       ['plan_id', 'UUID'],
@@ -200,10 +213,13 @@ async function seedDatabase() {
       await ensureColumn('support_tickets', c, d);
     }
 
-    await ensureSetting('ai_api_url', process.env.AI_API_URL || 'https://openrouter.ai/api/v1');
+    await ensureSetting(
+      'ai_api_url',
+      process.env.AI_API_URL || 'https://openrouter.ai/api/v1'
+    );
     await ensureSetting(
       'ai_api_key',
-      process.env.OPENROUTER_API_KEY || process.env.AI_API_KEY || ''
+      process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || ''
     );
 
     console.log('🚀 Début du seed de la base…');
@@ -228,6 +244,7 @@ async function seedDatabase() {
         ('fr', 1, 'Français'),
         ('en', 1, 'English'),
         ('es', 1, 'Español'),
+        ('it', 1, 'Italiano'),
         ('de', 1, 'Deutsch')
       ) AS v(code,tenant_id,name)
       WHERE NOT EXISTS (
@@ -253,14 +270,15 @@ async function seedDatabase() {
     `);
 
     await db.query(`
-      INSERT INTO public.hotel_customizations (hotel_id, name, welcome_message, theme_color, logo_url, default_language)
+      INSERT INTO public.hotel_customizations (hotel_id, name, welcome_message, theme_color, logo_url, default_language, menu_items)
       VALUES (
         '550e8400-e29b-41d4-a716-446655440000',
         'Assistant Virtuel',
         'Bienvenue au Demo Hotel',
         '#2563EB',
         NULL,
-        'fr'
+        'fr',
+        '[{"label":"Accueil","url":"/"},{"label":"Réservation","url":"/booking"}]'::jsonb
       )
       ON CONFLICT (hotel_id) DO NOTHING;
     `);
@@ -348,7 +366,18 @@ async function seedDatabase() {
         INSERT INTO public.knowledge_items (tenant_id, hotel_id, info)
         VALUES
           (1, '550e8400-e29b-41d4-a716-446655440000', 'Le petit-d\'jeuner est servi de 7h \u00e0 10h.'),
-          (1, '550e8400-e29b-41d4-a716-446655440000', 'La piscine est ouverte de 8h \u00e0 20h.')
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'La piscine est ouverte de 8h \u00e0 20h.'),
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'Le check-in commence \u00e0 15h.'),
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'Le check-out doit \u00eatre effectu\u00e9 avant 11h.'),
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'Le wifi est gratuit dans tout l\'\u00e9tablissement.'),
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'Un parking priv\u00e9 est disponible sur r\u00e9servation.')
+        ON CONFLICT DO NOTHING;
+      `);
+
+      await db.query(`
+        INSERT INTO public.agent_nodes (tenant_id, hotel_id, prompt, response, next_id)
+        VALUES
+          (1, '550e8400-e29b-41d4-a716-446655440000', 'salutation', 'Bonjour et bienvenue au Demo Hotel !', NULL)
         ON CONFLICT DO NOTHING;
       `);
     }

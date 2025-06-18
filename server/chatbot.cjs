@@ -1,32 +1,43 @@
 const express = require('express');
 const db = require('./db.cjs');
 
-let openai;
-async function getOpenAI() {
-  if (!openai) {
-    const { default: OpenAI } = await import('openai');
-    let url = process.env.AI_API_URL || 'https://openrouter.ai/api/v1';
-    let key = process.env.OPENROUTER_API_KEY || process.env.AI_API_KEY || '';
-    try {
-      const { rows } = await db.query(
-        "SELECT key, value FROM settings WHERE key IN ('ai_api_url','ai_api_key')"
-      );
-      const map = Object.fromEntries(rows.map(r => [r.key, r.value]));
-      if (map.ai_api_url) url = map.ai_api_url;
-      if (map.ai_api_key) key = map.ai_api_key;
-    } catch (err) {
-      console.warn('Failed to load AI settings from DB:', err.message);
-    }
-    openai = new OpenAI({
-      baseURL: url,
-      apiKey: key,
-      defaultHeaders: {
-        'HTTP-Referer': 'https://votresite.com',
-        'X-Title': 'HotelBot AI',
-      },
-    });
+async function callLLM(messages, model) {
+  let settings = {};
+  try {
+    const { rows } = await db.query(
+      "SELECT key, value FROM settings WHERE key IN ('ai_api_url','ai_api_key','ai_model')"
+    );
+    settings = Object.fromEntries(rows.map(r => [r.key, r.value]));
+  } catch (err) {
+    console.error('Failed to load AI settings from DB:', err.message);
   }
-  return openai;
+  const endpoint = (settings.ai_api_url || process.env.AI_API_URL || 'http://localhost:11434/v1')
+    .replace(/\/?$/, '') +
+    '/chat/completions';
+  const key =
+    settings.ai_api_key ||
+    process.env.AI_API_KEY ||
+    process.env.OPENROUTER_API_KEY ||
+    '';
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(key ? { Authorization: `Bearer ${key}` } : {}),
+      ...(process.env.SITE_URL ? { 'HTTP-Referer': process.env.SITE_URL } : {}),
+      ...(process.env.SITE_NAME ? { 'X-Title': process.env.SITE_NAME } : {})
+    },
+    body: JSON.stringify({
+      model: model || settings.ai_model || process.env.AI_MODEL || 'phi3:mini',
+      messages
+    })
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => res.statusText);
+    throw new Error(`LLM request failed: ${res.status} ${text}`);
+  }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || '';
 }
 
 const router = express.Router();
@@ -35,7 +46,23 @@ const router = express.Router();
 router.get('/hotel/:slug', async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT id, name, theme_color, welcome_message, logo_url, default_lang_code FROM hotels WHERE slug = $1`,
+      `SELECT h.id,
+              COALESCE(c.name,h.name) AS name,
+              COALESCE(c.theme_color,h.theme_color) AS theme_color,
+              COALESCE(c.welcome_message,h.welcome_message) AS welcome_message,
+              COALESCE(c.logo_url,h.logo_url) AS logo_url,
+              COALESCE(c.default_language,h.default_lang_code) AS default_lang_code,
+              c.menu_items,
+              COALESCE(json_agg(json_build_object('code', hl.lang_code,
+                                          'name', l.name,
+                                          'active', hl.is_active))
+                  FILTER (WHERE hl.lang_code IS NOT NULL), '[]') AS languages
+         FROM hotels h
+         LEFT JOIN hotel_customizations c ON c.hotel_id = h.id
+         LEFT JOIN hotel_languages hl ON hl.hotel_id = h.id
+         LEFT JOIN languages l ON l.code = hl.lang_code
+        WHERE h.slug = $1
+        GROUP BY h.id, c.id`,
       [req.params.slug]
     );
     if (result.rows.length === 0) {
@@ -80,20 +107,20 @@ router.post('/ask', async (req, res) => {
       [hotel_id, session_id]
     );
 
-    const client = await getOpenAI();
+    const systemParts = [...knowledge];
+    if (lang) {
+      systemParts.push(`Please answer in ${lang}`);
+    }
+
     const messages = [
-      { role: 'system', content: knowledge.join('\n') },
+      { role: 'system', content: systemParts.join('\n') },
       ...historyRows.flatMap(h => [
         { role: 'user', content: h.user_input },
         { role: 'assistant', content: h.bot_response }
       ]),
       { role: 'user', content: prompt }
     ];
-    const completion = await client.chat.completions.create({
-      model: process.env.AI_MODEL || 'google/gemma-3n-e4b-it:free',
-      messages
-    });
-    const responseText = completion.choices?.[0]?.message?.content || '';
+    const responseText = await callLLM(messages, process.env.AI_MODEL || 'phi3:mini');
 
     const keywords = extractKeywords(prompt);
     const insert = await db.query(
