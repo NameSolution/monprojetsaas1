@@ -1,32 +1,36 @@
 const express = require('express');
 const db = require('./db.cjs');
 
-let openai;
-async function getOpenAI() {
-  if (!openai) {
-    const { default: OpenAI } = await import('openai');
-    let url = process.env.AI_API_URL || 'http://localhost:11434/v1';
-    let key = process.env.OPENROUTER_API_KEY || process.env.AI_API_KEY || '';
-    try {
-      const { rows } = await db.query(
-        "SELECT key, value FROM settings WHERE key IN ('ai_api_url','ai_api_key')"
-      );
-      const map = Object.fromEntries(rows.map(r => [r.key, r.value]));
-      if (map.ai_api_url) url = map.ai_api_url;
-      if (map.ai_api_key) key = map.ai_api_key;
-    } catch (err) {
-      console.warn('Failed to load AI settings from DB:', err.message);
-    }
-    openai = new OpenAI({
-      baseURL: url,
-      apiKey: key,
-      defaultHeaders: {
-        'HTTP-Referer': 'https://votresite.com',
-        'X-Title': 'HotelBot AI',
-      },
-    });
+async function callLLM(messages, model) {
+  let url = process.env.AI_API_URL || 'http://localhost:11434/v1';
+  let key = process.env.AI_API_KEY || '';
+  try {
+    const { rows } = await db.query(
+      "SELECT key, value FROM settings WHERE key IN ('ai_api_url','ai_api_key','ai_model')"
+    );
+    const map = Object.fromEntries(rows.map(r => [r.key, r.value]));
+    if (map.ai_api_url) url = map.ai_api_url;
+    if (map.ai_api_key) key = map.ai_api_key;
+    if (!model) model = map.ai_model;
+  } catch (err) {
+    console.warn('Failed to load AI settings from DB:', err.message);
   }
-  return openai;
+
+  const endpoint = url.replace(/\/?$/, '') + '/chat/completions';
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(key ? { Authorization: `Bearer ${key}` } : {})
+    },
+    body: JSON.stringify({ model: model || process.env.AI_MODEL || 'phi3:mini', messages })
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => res.statusText);
+    throw new Error(`LLM request failed: ${res.status} ${text}`);
+  }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || '';
 }
 
 const router = express.Router();
@@ -89,7 +93,6 @@ router.post('/ask', async (req, res) => {
       [hotel_id, session_id]
     );
 
-    const client = await getOpenAI();
     const messages = [
       { role: 'system', content: knowledge.join('\n') },
       ...historyRows.flatMap(h => [
@@ -98,11 +101,7 @@ router.post('/ask', async (req, res) => {
       ]),
       { role: 'user', content: prompt }
     ];
-    const completion = await client.chat.completions.create({
-      model: process.env.AI_MODEL || 'phi3:mini',
-      messages
-    });
-    const responseText = completion.choices?.[0]?.message?.content || '';
+    const responseText = await callLLM(messages, process.env.AI_MODEL || 'phi3:mini');
 
     const keywords = extractKeywords(prompt);
     const insert = await db.query(
