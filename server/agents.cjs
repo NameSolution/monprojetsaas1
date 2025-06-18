@@ -2,12 +2,16 @@ const express = require('express');
 const router = express.Router();
 const db = require('./db.cjs');
 
-// Fetch agent config for current hotel
+// Fetch agent config. Superadmins can specify ?hotel_id=XXX
 router.get('/', async (req, res) => {
+  const hotelId =
+    req.user.role === 'superadmin'
+      ? req.query.hotel_id || req.user.hotel_id
+      : req.user.hotel_id;
   try {
     const { rows } = await db.query(
       'SELECT * FROM agents WHERE hotel_id = $1 LIMIT 1',
-      [req.user.hotel_id]
+      [hotelId]
     );
     if (rows.length === 0) {
       return res.json(null);
@@ -19,9 +23,12 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Create or update agent config
+// Create or update agent config. Superadmins may set ?hotel_id=XXX
 router.post('/', async (req, res) => {
-  const hotelId = req.user.hotel_id;
+  const hotelId =
+    req.user.role === 'superadmin'
+      ? req.query.hotel_id || req.body.hotel_id || req.user.hotel_id
+      : req.user.hotel_id;
   const { name, persona, language, greeting, flow } = req.body;
   try {
     const { rows } = await db.query(

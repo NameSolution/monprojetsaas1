@@ -18,11 +18,13 @@ import {
   Server,
   Settings as SettingsIcon,
   LifeBuoy,
-  Menu
+  Menu,
+  Bot
 } from 'lucide-react';
 
 const SuperAdminDashboardView = lazy(() => import('@/components/superadmin/SuperAdminDashboardView'));
 const ClientsView = lazy(() => import('@/components/superadmin/ClientsView'));
+const AgentFlowEditor = lazy(() => import('@/components/superadmin/AgentFlowEditor'));
 const SystemView = lazy(() => import('@/components/superadmin/SystemView'));
 const SuperAdminAnalyticsView = lazy(() => import('@/components/superadmin/AnalyticsView'));
 const SuperAdminBillingView = lazy(() => import('@/components/superadmin/BillingView'));
@@ -62,7 +64,7 @@ const SuperAdminDashboard = () => {
 
   const getActiveTab = () => {
     const path = location.pathname.split('/').pop();
-    if (['clients', 'analytics', 'billing', 'system', 'settings', 'support-tickets'].includes(path)) {
+    if (['clients', 'agent-builder', 'analytics', 'billing', 'system', 'settings', 'support-tickets'].includes(path)) {
       return path;
     }
     return 'dashboard';
@@ -104,6 +106,7 @@ const SuperAdminDashboard = () => {
         {[
           { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/superadmin' },
           { id: 'clients', icon: Users, label: 'Hôtels & Utilisateurs', path: '/superadmin/clients' },
+          { id: 'agent-builder', icon: Bot, label: 'Agent Builder', path: '/superadmin/agent-builder' },
           { id: 'support-tickets', icon: LifeBuoy, label: 'Support Tickets', path: '/superadmin/support-tickets', badge: notifications > 0 ? notifications : null },
           { id: 'analytics', icon: BarChart3, label: 'Analytics', path: '/superadmin/analytics' },
           { id: 'billing', icon: CreditCard, label: 'Facturation', path: '/superadmin/billing' },
@@ -210,6 +213,7 @@ const SuperAdminDashboard = () => {
                 <Routes location={location} key={location.pathname}>
                 <Route index element={<SuperAdminDashboardView />} />
                 <Route path="clients" element={<ClientsView />} />
+                <Route path="agent-builder" element={<AgentFlowEditor />} />
                 <Route path="support-tickets" element={<SupportTicketsView />} />
                 <Route path="system" element={<SystemView />} />
                 <Route path="analytics" element={<SuperAdminAnalyticsView />} />

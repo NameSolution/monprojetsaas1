@@ -228,12 +228,14 @@ class ApiService {
   }
 
   // Agent builder methods
-  async getAgentConfig() {
-    return this.request('/agents');
+  async getAgentConfig(hotelId) {
+    const url = hotelId ? `/agents?hotel_id=${hotelId}` : '/agents';
+    return this.request(url);
   }
 
-  async saveAgentConfig(data) {
-    return this.request('/agents', {
+  async saveAgentConfig(data, hotelId) {
+    const url = hotelId ? `/agents?hotel_id=${hotelId}` : '/agents';
+    return this.request(url, {
       method: 'POST',
       body: data
     });

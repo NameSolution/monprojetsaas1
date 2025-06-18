@@ -8,6 +8,7 @@ export const useSuperAdminData = (resource) => {
   const [plans, setPlans] = useState([]);
   const [supportTickets, setSupportTickets] = useState([]);
   const [dashboard, setDashboard] = useState(null);
+  const [agentConfig, setAgentConfig] = useState(null);
   const [analytics, setAnalytics] = useState({
     stats: {
       totalUsers: 0,
@@ -153,6 +154,26 @@ export const useSuperAdminData = (resource) => {
     }
   };
 
+  const fetchAgentConfig = async (hotelId) => {
+    try {
+      const cfg = await apiService.getAgentConfig(hotelId);
+      setAgentConfig(cfg);
+      return cfg;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const saveAgentConfig = async (hotelId, data) => {
+    try {
+      const saved = await apiService.saveAgentConfig(data, hotelId);
+      setAgentConfig(saved);
+      return saved;
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const fetchAISettings = async () => {
     try {
       const settings = await apiService.getAISettings();
@@ -178,6 +199,7 @@ export const useSuperAdminData = (resource) => {
     supportTickets,
     analytics,
     dashboard,
+    agentConfig,
   };
   const setterMap = {
     clients: setClients,
@@ -203,6 +225,8 @@ export const useSuperAdminData = (resource) => {
     createSupportTicket,
     updateSupportTicket,
     replySupportTicket,
+    fetchAgentConfig,
+    saveAgentConfig,
     fetchAISettings,
     saveAISettings,
     refetch: fetchData,
