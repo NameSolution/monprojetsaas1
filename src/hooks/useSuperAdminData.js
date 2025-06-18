@@ -7,6 +7,7 @@ export const useSuperAdminData = (resource) => {
   const [users, setUsers] = useState([]);
   const [plans, setPlans] = useState([]);
   const [supportTickets, setSupportTickets] = useState([]);
+  const [interactions, setInteractions] = useState([]);
   const [dashboard, setDashboard] = useState(null);
   const [agentConfig, setAgentConfig] = useState(null);
   const [analytics, setAnalytics] = useState({
@@ -24,13 +25,14 @@ export const useSuperAdminData = (resource) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [clientsData, hotelsData, usersData, plansData, ticketsData, analyticsData] = await Promise.all([
+      const [clientsData, hotelsData, usersData, plansData, ticketsData, analyticsData, interactionsData] = await Promise.all([
         apiService.getClients(),
         apiService.getHotels(),
         apiService.getUsers(),
         apiService.getPlans(),
         apiService.getSupportTickets(),
-        apiService.getAnalytics()
+        apiService.getAnalytics(),
+        apiService.getInteractions()
       ]);
 
       setClients(clientsData);
@@ -38,6 +40,7 @@ export const useSuperAdminData = (resource) => {
       setUsers(usersData);
       setPlans(plansData);
       setSupportTickets(ticketsData);
+      setInteractions(interactionsData);
       setAnalytics({
         stats: analyticsData.stats || {},
         conversationsData: analyticsData.conversationsData || [],
@@ -191,12 +194,23 @@ export const useSuperAdminData = (resource) => {
     }
   };
 
+  const fetchInteractions = async (hotelId) => {
+    try {
+      const data = await apiService.getInteractions(hotelId);
+      setInteractions(data);
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const dataMap = {
     clients,
     hotels,
     users,
     plans,
     supportTickets,
+    interactions,
     analytics,
     dashboard,
     agentConfig,
@@ -207,13 +221,14 @@ export const useSuperAdminData = (resource) => {
     users: setUsers,
     plans: setPlans,
     supportTickets: setSupportTickets,
+    interactions: setInteractions,
     analytics: setAnalytics,
     dashboard: setDashboard,
   };
 
   return {
     data: dataMap[resource] || null,
-    allData: { clients, hotels, users, plans, supportTickets, analytics, dashboard },
+    allData: { clients, hotels, users, plans, supportTickets, interactions, analytics, dashboard },
     loading,
     error,
     addHotel: createHotel,
@@ -229,6 +244,7 @@ export const useSuperAdminData = (resource) => {
     saveAgentConfig,
     fetchAISettings,
     saveAISettings,
+    fetchInteractions,
     refetch: fetchData,
     setData: setterMap[resource],
   };

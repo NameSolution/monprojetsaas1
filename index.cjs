@@ -8,6 +8,7 @@ const hotelRoutes = require('./server/hotels.cjs');
 const userRoutes = require('./server/users.cjs');
 const analyticsRoutes = require('./server/analytics.cjs');
 const supportRoutes = require('./server/support.cjs');
+const interactionsRoutes = require('./server/interactions.cjs');
 const planRoutes = require('./server/plans.cjs');
 const languageRoutes = require('./server/languages.cjs');
 const chatbotRoutes = require('./server/chatbot.cjs');
@@ -51,6 +52,7 @@ app.use('/api/settings', authMiddleware, settingsRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/clients', authMiddleware, clientsRoutes);
 app.use('/api/agents', authMiddleware, agentRoutes);
+app.use('/api/interactions', authMiddleware, interactionsRoutes);
 // Upload routes integrated directly
 
 // Health check endpoint

@@ -240,6 +240,11 @@ class ApiService {
       body: data
     });
   }
+
+  async getInteractions(hotelId) {
+    const url = hotelId ? `/interactions?hotel_id=${hotelId}` : '/interactions';
+    return this.request(url);
+  }
 }
 
 export default new ApiService();
