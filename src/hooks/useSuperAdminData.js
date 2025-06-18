@@ -204,6 +204,14 @@ export const useSuperAdminData = (resource) => {
     }
   };
 
+  const fetchAgentVersions = async (hotelId) => {
+    try {
+      return await apiService.getAgentVersions(hotelId);
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const dataMap = {
     clients,
     hotels,
@@ -245,6 +253,7 @@ export const useSuperAdminData = (resource) => {
     fetchAISettings,
     saveAISettings,
     fetchInteractions,
+    fetchAgentVersions,
     refetch: fetchData,
     setData: setterMap[resource],
   };

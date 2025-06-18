@@ -125,6 +125,13 @@ async function createTables() {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS public.agent_versions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        agent_id UUID REFERENCES public.agents(hotel_id) ON DELETE CASCADE,
+        flow JSONB,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
 
       CREATE TABLE IF NOT EXISTS public.support_tickets (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -291,6 +298,11 @@ async function seedDatabase() {
     `);
 
     await db.query(`
+      INSERT INTO public.agent_versions (agent_id, flow)
+      SELECT hotel_id, flow FROM public.agents WHERE hotel_id = '550e8400-e29b-41d4-a716-446655440000';
+    `);
+
+    await db.query(`
       UPDATE public.hotels
          SET slug = 'demo-hotel',
              contact_name = 'Demo Admin',
@@ -394,6 +406,10 @@ async function seedDatabase() {
           '["name","date"]'::jsonb
         )
         ON CONFLICT (hotel_id) DO NOTHING;
+      `);
+      await db.query(`
+        INSERT INTO public.agent_versions (agent_id, flow)
+        SELECT hotel_id, flow FROM public.agents WHERE hotel_id = '550e8400-e29b-41d4-a716-446655440000';
       `);
     }
 

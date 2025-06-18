@@ -241,6 +241,11 @@ class ApiService {
     });
   }
 
+  async getAgentVersions(hotelId) {
+    const url = hotelId ? `/agents/versions?hotel_id=${hotelId}` : '/agents/versions';
+    return this.request(url);
+  }
+
   async getInteractions(hotelId) {
     const url = hotelId ? `/interactions?hotel_id=${hotelId}` : '/interactions';
     return this.request(url);
